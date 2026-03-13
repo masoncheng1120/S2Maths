@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Similarity Quiz</title>
+    <!-- MathJax for LaTeX rendering -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        .menu-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .menu-card:hover:not(:disabled) {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.15);
+        }
+        .menu-card:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* SVG Styling */
+        .tri-line { stroke: #334155; stroke-width: 2.5; fill: #f8fafc; stroke-linejoin: round; }
+        .tri-arc { stroke: #3b82f6; stroke-width: 2; fill: none; stroke-linecap: round; }
+        .tri-label { fill: #0f172a; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 16px; text-anchor: middle; dominant-baseline: central; }
+        .tri-vert { fill: #64748b; font-family: 'Inter', sans-serif; font-weight: 800; font-size: 18px; text-anchor: middle; dominant-baseline: central; }
+        .tri-italic { font-style: italic; font-family: 'Times New Roman', serif; font-size: 22px; fill: #4338ca; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 text-slate-800">
+
+    <!-- Back to Dashboard button -->
+    <button onclick="window.location.href='index.html'" 
+            title="Back to Dashboard"
+            style="position:fixed;left:14px;top:14px;z-index:9999;padding:8px 12px;border-radius:10px;background:#ffffff;border:1px solid rgba(0,0,0,0.06);box-shadow:0 6px 18px rgba(0,0,0,0.06);font-weight:700;cursor:pointer">← Dashboard</button>
+
+    <!-- MENU VIEW -->
+    <div id="menuView" class="w-full max-w-5xl fade-in">
+        <div class="text-center mb-8">
+            <h1 class="text-5xl font-extrabold text-slate-800 mb-3 tracking-tight">Similarity</h1>
+            <p class="text-slate-600 text-lg">Mastering Similar Triangles</p>
+        </div>
+
+        <!-- Name Input -->
+        <div class="max-w-md mx-auto mb-10">
+            <div class="glass-panel p-2 rounded-2xl shadow-sm flex items-center gap-3 px-4">
+                <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                <input type="text" id="usernameInput" placeholder="Enter your name" class="w-full bg-transparent border-none focus:ring-0 text-slate-700 font-medium placeholder-slate-400 py-2 outline-none" oninput="saveName()">
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
+            <!-- Property Card -->
+            <button onclick="startQuiz('property')" class="menu-card glass-panel rounded-3xl p-8 shadow-xl border-t-4 border-blue-500 text-left group relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                    <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2zm0 4.5l6.5 13h-13L12 6.5z"></path></svg>
+                </div>
+                <div class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-blue-600 transition-colors shadow-sm">
+                    <svg class="w-6 h-6 text-blue-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"></path></svg>
+                </div>
+                <h2 class="text-xl font-bold text-slate-800 mb-2">Property of Similar Triangles</h2>
+                <p class="text-slate-500 text-sm mb-4 leading-relaxed">Find unknown sides and angles using corresponding properties.</p>
+                <div class="flex items-center text-blue-600 font-bold text-sm group-hover:translate-x-2 transition-transform">
+                    Start <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                </div>
+            </button>
+
+            <!-- Proving Card -->
+            <button onclick="startQuiz('proving')" class="menu-card glass-panel rounded-3xl p-8 shadow-md border-t-4 border-purple-500 text-left group relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                    <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                </div>
+                <div class="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-purple-600 transition-colors shadow-sm">
+                    <svg class="w-6 h-6 text-purple-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                </div>
+                <h2 class="text-xl font-bold text-slate-800 mb-2">Proving Similar Triangles</h2>
+                <p class="text-slate-500 text-sm mb-4 leading-relaxed">Prove triangles are similar using AAA, 3 sides proportional, or ratio of 2 sides, inc. ∠.</p>
+                <div class="flex items-center text-purple-600 font-bold text-sm group-hover:translate-x-2 transition-transform">
+                    Start <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                </div>
+            </button>
+
+            <!-- Advanced Card -->
+            <button onclick="startQuiz('advanced')" class="menu-card glass-panel rounded-3xl p-8 shadow-md border-t-4 border-rose-500 text-left group relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                    <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                </div>
+                <div class="w-12 h-12 bg-rose-100 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-rose-600 transition-colors shadow-sm">
+                    <svg class="w-6 h-6 text-rose-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                </div>
+                <h2 class="text-xl font-bold text-slate-800 mb-2">Advanced Questions</h2>
+                <p class="text-slate-500 text-sm mb-4 leading-relaxed">Complex figures with nested triangles, common angles, and parallel lines proofs.</p>
+                <div class="flex items-center text-rose-600 font-bold text-sm group-hover:translate-x-2 transition-transform">
+                    Start <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                </div>
+            </button>
+        </div>
+    </div>
+
+    <!-- QUIZ VIEW -->
+    <div id="quizView" class="hidden glass-panel rounded-3xl shadow-2xl w-full max-w-5xl overflow-hidden fade-in relative">
+        <!-- Header -->
+        <div id="headerBar" class="bg-blue-600 p-5 text-white flex justify-between items-center shadow-md transition-colors duration-300">
+            <div class="flex items-center gap-4">
+                <button onclick="showMenu()" class="bg-white/20 hover:bg-white/30 p-2 rounded-xl transition-all hover:scale-105" title="Back to Menu">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                </button>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight">Similarity</h1>
+                    <div id="quizSubTitle" class="text-xs opacity-80 uppercase tracking-widest font-semibold">Property of Similar Triangles</div>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="text-white/80 font-medium text-sm"><span id="qCount">1</span>/10</div>
+                <div class="bg-black/20 px-4 py-2 rounded-xl text-center">
+                    <div class="text-[10px] uppercase tracking-wider opacity-75 font-bold">Score</div>
+                    <div class="text-xl font-mono font-bold leading-none"><span id="score">0</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="p-6 md:p-8">
+            <!-- Question Prompt -->
+            <div class="text-lg text-slate-700 font-medium mb-4" id="questionPrompt">
+                <!-- Injected via JS -->
+            </div>
+
+            <!-- Drawing Area -->
+            <div class="bg-white border-2 border-slate-100 rounded-2xl p-4 mb-6 flex flex-col items-center justify-center shadow-inner relative overflow-hidden">
+                <div id="svgContainer" class="w-full flex justify-center">
+                    <!-- SVG gets injected here -->
+                </div>
+                <div class="text-xs text-slate-400 mt-2 font-medium italic">Figure not drawn to scale</div>
+            </div>
+
+            <!-- Inputs Grid (For Input Questions) -->
+            <div id="inputsContainer" class="flex flex-col gap-0 mb-6">
+                <!-- Rows injected via JS -->
+            </div>
+
+            <!-- Multiple Choice Grid (For Proving & MC Questions) -->
+            <div id="mcContainer" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <!-- Buttons injected via JS -->
+            </div>
+
+            <!-- Controls -->
+            <div class="flex justify-end pt-2">
+                <button onclick="submitAnswers()" id="actionBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-10 rounded-xl shadow-lg transform transition hover:-translate-y-1 active:translate-y-0 focus:outline-none flex items-center gap-3">
+                    <span>Check Answers</span>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RESULT VIEW -->
+    <div id="resultView" class="hidden w-full max-w-md fade-in">
+        <div class="glass-panel rounded-3xl p-8 shadow-2xl text-center">
+            <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <h2 class="text-3xl font-extrabold text-slate-800 mb-2">Quiz Complete!</h2>
+            <p class="text-slate-500 mb-8" id="resultSubtitle">Good job practicing!</p>
+            
+            <div class="bg-white/50 rounded-xl p-6 mb-8 text-left space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-200 pb-3">
+                    <span class="text-slate-500 font-medium">Student</span>
+                    <span id="resultName" class="text-slate-800 font-bold text-lg">Student</span>
+                </div>
+                <div class="flex justify-between items-center border-b border-slate-200 pb-3">
+                    <span class="text-slate-500 font-medium">Score</span>
+                    <span class="text-slate-800 font-bold text-lg"><span id="resultScore">0</span> / 10</span>
+                </div>
+            </div>
+
+            <button onclick="showMenu()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-4 rounded-xl shadow-lg transform transition hover:-translate-y-1 active:translate-y-0 flex justify-center items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                Back to Menu
+            </button>
+        </div>
+    </div>
+
+<script>
+    // --- Math Geometry Engine ---
+    const rotate = (x, y, angle) => {
+        let rad = angle * Math.PI / 180;
+        return {
+            x: x * Math.cos(rad) - y * Math.sin(rad),
+            y: x * Math.sin(rad) + y * Math.cos(rad)
+        };
+    };
+    const normalize = (v) => {
+        let len = Math.hypot(v.x, v.y);
+        return { x: v.x / len, y: v.y / len };
+    };
+    const add = (a, b) => ({ x: a.x + b.x, y: a.y + b.y });
+    const sub = (a, b) => ({ x: a.x - b.x, y: a.y - b.y });
+    const scale = (v, s) => ({ x: v.x * s, y: v.y * s });
+
+    // --- State ---
+    let state = {
+        currentTopic: 'property', // 'property', 'proving', 'advanced'
+        score: 0,
+        questionCount: 0,
+        maxQuestions: 10,
+        isAnswered: false,
+        studentName: 'Student',
+        currentData: null,
+        selectedOption: null
+    };
+
+    // --- Helpers ---
+    const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+    const shuffle = (array) => {
+        const unique = [...new Set(array)];
+        for (let i = unique.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [unique[i], unique[j]] = [unique[j], unique[i]];
+        }
+        return unique;
+    };
+    const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+    // --- UI Navigation ---
+    function loadName() {
+        const savedName = localStorage.getItem('hkdse_sim_username');
+        if (savedName) {
+            document.getElementById('usernameInput').value = savedName;
+            state.studentName = savedName;
+        }
+    }
+
+    function saveName() {
+        const name = document.getElementById('usernameInput').value.trim();
+        if (name) {
+            localStorage.setItem('hkdse_sim_username', name);
+            state.studentName = name;
+        } else {
+            state.studentName = "Student";
+        }
+    }
+
+    function showMenu() {
+        document.getElementById('menuView').classList.remove('hidden');
+        document.getElementById('quizView').classList.add('hidden');
+        document.getElementById('resultView').classList.add('hidden');
+        document.getElementById('menuView').classList.add('fade-in');
+    }
+
+    function startQuiz(topic) {
+        state.currentTopic = topic;
+        state.score = 0;
+        state.questionCount = 0;
+        
+        const inputName = document.getElementById('usernameInput').value.trim();
+        if(inputName) state.studentName = inputName;
+
+        const headerBar = document.getElementById('headerBar');
+        const subTitle = document.getElementById('quizSubTitle');
+
+        if(topic === 'property') {
+            headerBar.className = "bg-blue-600 p-5 text-white flex justify-between items-center shadow-md transition-colors duration-300";
+            subTitle.textContent = "Property of Similar Triangles";
+        } else if (topic === 'proving') {
+            headerBar.className = "bg-purple-600 p-5 text-white flex justify-between items-center shadow-md transition-colors duration-300";
+            subTitle.textContent = "Proving Similar Triangles";
+        } else if (topic === 'advanced') {
+            headerBar.className = "bg-rose-600 p-5 text-white flex justify-between items-center shadow-md transition-colors duration-300";
+            subTitle.textContent = "Advanced Parallel Lines & Similarity";
+        }
+
+        document.getElementById('score').textContent = '0';
+        document.getElementById('menuView').classList.add('hidden');
+        document.getElementById('quizView').classList.remove('hidden');
+        document.getElementById('resultView').classList.add('hidden');
+        
+        nextQuestion();
+    }
+
+    function showResults() {
+        document.getElementById('quizView').classList.add('hidden');
+        document.getElementById('resultView').classList.remove('hidden');
+        document.getElementById('resultView').classList.add('fade-in');
+
+        document.getElementById('resultName').textContent = state.studentName;
+        document.getElementById('resultScore').textContent = state.score;
+        document.getElementById('resultSubtitle').textContent = state.currentTopic === 'property' 
+            ? "Good job practicing properties of similar triangles."
+            : state.currentTopic === 'proving'
+            ? "Great work identifying the conditions for similar triangles."
+            : "Excellent work on advanced similar triangles and parallel lines!";
+    }
+
+    // --- Generator Engines ---
+    const baseTriangles = [
+        { sides: [6, 8, 10], angles: [37, 53, 90] },
+        { sides: [10, 24, 26], angles: [23, 67, 90] },
+        { sides: [14, 16, 18], angles: [48, 58, 74] },
+        { sides: [16, 30, 34], angles: [28, 62, 90] },
+        { sides: [18, 20, 22], angles: [51, 59, 70] }
+    ];
+
+    function getRestrictedLetters(numSets = 2) {
+        const allowedSets = [['A', 'B', 'C'], ['D', 'E', 'F'], ['R', 'P', 'Q'], ['X', 'Y', 'Z'], ['L', 'M', 'N']];
+        const pickedSets = shuffle(allowedSets).slice(0, numSets);
+        return pickedSets.map(set => shuffle([...set]));
+    }
+
+    function generatePropertyQuestion() {
+        const tBase = pick(baseTriangles);
+        const k = pick([2, 3, 4]);
+
+        const [vT1, vT2] = getRestrictedLetters(2);
+
+        let pT1 = [
+            {v: vT1[0], angle: tBase.angles[0], side: tBase.sides[0]}, 
+            {v: vT1[1], angle: tBase.angles[1], side: tBase.sides[1]},
+            {v: vT1[2], angle: tBase.angles[2], side: tBase.sides[2]}
+        ];
+        let pT2 = [
+            {v: vT2[0], angle: tBase.angles[0], side: tBase.sides[0] * k},
+            {v: vT2[1], angle: tBase.angles[1], side: tBase.sides[1] * k},
+            {v: vT2[2], angle: tBase.angles[2], side: tBase.sides[2] * k}
+        ];
+
+        const indices = shuffle([0, 1, 2]);
+        const scaleIdx = indices[0]; 
+        const askSideIdx = indices[1]; 
+        const askAng1Idx = indices[2]; 
+        const askAng2Idx = indices[0]; 
+
+        const varLabels = shuffle(['x', 'y', 'z']);
+        const v1 = varLabels[0], v2 = varLabels[1], v3 = varLabels[2];
+
+        const t1_display = { sides: {}, angles: {} };
+        const t2_display = { sides: {}, angles: {} };
+
+        t1_display.sides[scaleIdx] = pT1[scaleIdx].side;
+        t2_display.sides[scaleIdx] = pT2[scaleIdx].side;
+
+        t1_display.sides[askSideIdx] = pT1[askSideIdx].side;
+        t2_display.sides[askSideIdx] = v1;
+        const ans1 = { var: v1, val: pT2[askSideIdx].side, reason: '(Corr sides, ~△)' };
+
+        t1_display.angles[askAng1Idx] = pT1[askAng1Idx].angle + '°';
+        t2_display.angles[askAng1Idx] = v2;
+        const ans2 = { var: v2, val: pT2[askAng1Idx].angle, reason: '(Corr ∠s, ~△)' };
+
+        t2_display.angles[askAng2Idx] = pT2[askAng2Idx].angle + '°';
+        t1_display.angles[askAng2Idx] = v3;
+        const ans3 = { var: v3, val: pT1[askAng2Idx].angle, reason: '(Corr ∠s, ~△)' };
+
+        let ansArr = [ans1, ans2, ans3].sort((a,b) => a.var.localeCompare(b.var));
+
+        return {
+            topic: 'property',
+            isMC: false,
+            simStatement: `In the figure, \\( \\triangle ${vT1.join('')} \\sim \\triangle ${vT2.join('')} \\). Find \\(x\\), \\(y\\) and \\(z\\).`,
+            t1_verts: vT1,
+            t2_verts: vT2,
+            t1_display,
+            t2_display,
+            ans: ansArr
+        };
+    }
+
+    function generateProvingQuestion2Triangles() {
+        const tBase = pick(baseTriangles);
+        const k2 = pick([2, 3, 4]);
+        const [vT1, vT2] = getRestrictedLetters(2);
+        const type = pick(['AAA', 'SSS', 'SAS']);
+
+        let t1_display = { sides: {}, angles: {} };
+        let t2_display = { sides: {}, angles: {} };
+
+        if (type === 'AAA') {
+            const angleIndices = shuffle([0, 1, 2]).slice(0, 2); 
+            angleIndices.forEach(idx => {
+                t1_display.angles[idx] = tBase.angles[idx] + '°';
+                t2_display.angles[idx] = tBase.angles[idx] + '°';
+            });
+        } else if (type === 'SSS') {
+            [0, 1, 2].forEach(idx => {
+                t1_display.sides[idx] = tBase.sides[idx];
+                t2_display.sides[idx] = tBase.sides[idx] * k2;
+            });
+        } else if (type === 'SAS') {
+            const angleIdx = pick([0, 1, 2]);
+            const side1Idx = (angleIdx + 1) % 3;
+            const side2Idx = (angleIdx + 2) % 3;
+
+            t1_display.angles[angleIdx] = tBase.angles[angleIdx] + '°';
+            t2_display.angles[angleIdx] = tBase.angles[angleIdx] + '°';
+
+            t1_display.sides[side1Idx] = tBase.sides[side1Idx];
+            t1_display.sides[side2Idx] = tBase.sides[side2Idx];
+
+            t2_display.sides[side1Idx] = tBase.sides[side1Idx] * k2;
+            t2_display.sides[side2Idx] = tBase.sides[side2Idx] * k2;
+        }
+
+        const options = ['AAA', '3 sides proportional', 'ratio of 2 sides, inc. ∠', 'Not enough information'];
+        const correctIndex = type === 'AAA' ? 0 : type === 'SSS' ? 1 : 2;
+
+        return {
+            topic: 'proving',
+            isMC: true,
+            simStatement: `Given \\( \\triangle ${vT1.join('')} \\) and \\( \\triangle ${vT2.join('')} \\). Which condition proves that the triangles are similar?`,
+            t1_verts: vT1,
+            t2_verts: vT2,
+            t1_display,
+            t2_display,
+            options,
+            correctIndex
+        };
+    }
+
+    function generateProvingQuestion3Triangles() {
+        const tBase = pick(baseTriangles);
+        const k2 = pick([2, 3]); 
+        
+        const [v1, v2, v3] = getRestrictedLetters(3);
+        const proofTypes = ['AAA', 'SSS', 'SAS'];
+        const type = pick(proofTypes);
+
+        let t1 = { verts: v1, display: { sides: {}, angles: {} }, isSim: true };
+        let t2 = { verts: v2, display: { sides: {}, angles: {} }, isSim: true };
+        let t3 = { verts: v3, display: { sides: {}, angles: {} }, isSim: false };
+
+        if (type === 'AAA') {
+            const angleIndices = shuffle([0, 1, 2]).slice(0, 2);
+            angleIndices.forEach(idx => {
+                t1.display.angles[idx] = tBase.angles[idx] + '°';
+                t2.display.angles[idx] = tBase.angles[idx] + '°';
+                t3.display.angles[idx] = (tBase.angles[idx] + (idx === angleIndices[0] ? 5 : -5)) + '°';
+            });
+        } else if (type === 'SSS') {
+            [0, 1, 2].forEach(idx => {
+                t1.display.sides[idx] = tBase.sides[idx];
+                t2.display.sides[idx] = tBase.sides[idx] * k2;
+                t3.display.sides[idx] = (idx === 2) ? (tBase.sides[idx] * k2 + 2) : (tBase.sides[idx] * k2);
+            });
+        } else if (type === 'SAS') {
+            const angleIdx = pick([0, 1, 2]);
+            const side1Idx = (angleIdx + 1) % 3;
+            const side2Idx = (angleIdx + 2) % 3;
+
+            t1.display.angles[angleIdx] = tBase.angles[angleIdx] + '°';
+            t2.display.angles[angleIdx] = tBase.angles[angleIdx] + '°';
+            t3.display.angles[angleIdx] = tBase.angles[angleIdx] + '°';
+
+            t1.display.sides[side1Idx] = tBase.sides[side1Idx];
+            t1.display.sides[side2Idx] = tBase.sides[side2Idx];
+
+            t2.display.sides[side1Idx] = tBase.sides[side1Idx] * k2;
+            t2.display.sides[side2Idx] = tBase.sides[side2Idx] * k2;
+
+            t3.display.sides[side1Idx] = tBase.sides[side1Idx] * k2;
+            t3.display.sides[side2Idx] = tBase.sides[side2Idx] * k2 + 3; 
+        }
+
+        const triangles = shuffle([t1, t2, t3]);
+        const simTriangles = triangles.filter(t => t.isSim);
+        const distTriangle = triangles.find(t => !t.isSim);
+
+        const nameSim1 = simTriangles[0].verts.join('');
+        const nameSim2 = simTriangles[1].verts.join('');
+        const nameDist = distTriangle.verts.join('');
+
+        const dseReasons = {
+            'AAA': 'AAA',
+            'SSS': '3 sides proportional',
+            'SAS': 'ratio of 2 sides, inc. ∠'
+        };
+        const correctReason = dseReasons[type];
+        const wrongReasons = Object.values(dseReasons).filter(r => r !== correctReason);
+        const wrongReason = pick(wrongReasons);
+
+        const rawOptions = [
+            { text: `\\( \\triangle ${nameSim1} \\sim \\triangle ${nameSim2} \\) (${correctReason})`, correct: true },
+            { text: `\\( \\triangle ${nameSim1} \\sim \\triangle ${nameDist} \\) (${correctReason})`, correct: false },
+            { text: `\\( \\triangle ${nameSim2} \\sim \\triangle ${nameDist} \\) (${correctReason})`, correct: false },
+            { text: `\\( \\triangle ${nameSim1} \\sim \\triangle ${nameSim2} \\) (${wrongReason})`, correct: false }
+        ];
+
+        const shuffledOptions = shuffle(rawOptions);
+        const correctIndex = shuffledOptions.findIndex(o => o.correct);
+
+        return {
+            topic: 'proving',
+            isMC: true,
+            isThreeTriangles: true,
+            triangles,
+            simStatement: `In the figure below, which two triangles are similar, and what is the reason?`,
+            options: shuffledOptions.map(o => o.text),
+            correctIndex
+        };
+    }
+
+    function generateAdvancedQuestion() {
+        const type = rand(1, 3);
+        const k = pick([2, 3, 4]);
+
+        if (type === 1) { // Nested Find Side
+            let a = rand(2, 6);
+            let AD = a, DB = a * (k - 1);
+            let c = rand(3, 8);
+            let DE = c, BC = c * k;
+
+            return {
+                topic: 'advanced',
+                advType: 'nested',
+                isMC: false,
+                simStatement: `In the figure, \\( DE \\parallel BC \\). Find \\( x \\).`,
+                ans: { var: 'x', val: BC },
+                AD: AD, DB: DB, DE: DE, BC: 'x', AE: '', EC: '',
+                isParallel: true
+            };
+        } else if (type === 2) { // Hourglass Find Side
+            let a = rand(2, 6);
+            let AE = a, EC = a * k;
+            let c = rand(3, 8);
+            let AB = c, CD = c * k;
+
+            return {
+                topic: 'advanced',
+                advType: 'hourglass',
+                isMC: false,
+                simStatement: `In the figure, \\( AB \\parallel CD \\). Find \\( x \\).`,
+                ans: { var: 'x', val: CD },
+                AE: AE, EC: EC, AB: AB, CD: 'x', BE: '', ED: '',
+                isParallel: true
+            };
+        } else { 
+            // Type 3: Common Angle Flipped Similarity Trap
+            // Tests "ratio of 2 sides, inc. angle" where the small triangle is flipped inside the larger one
+            let a, b, scale;
+            do {
+                a = rand(3, 7);
+                b = rand(3, 7);
+                scale = rand(2, 3);
+            } while (a === b || scale * b <= a || scale * a <= b);
+            
+            let AD = a, AE = b;
+            let AC = scale * a, AB = scale * b;
+            let DB = AB - a, EC = AC - b;
+
+            let data = {
+                topic: 'advanced',
+                advType: 'nested', // Reuse nested SVG but turn off parallel markers
+                isMC: true,
+                simStatement: `In the figure, which of the following must be true?`,
+                options: [
+                    '\\( \\triangle ADE \\sim \\triangle ACB \\)',
+                    '\\( \\triangle ADE \\sim \\triangle ABC \\)',
+                    '\\( DE \\parallel BC \\)',
+                    '\\( \\angle ADE = \\angle ABC \\)'
+                ],
+                correctIndex: 0,
+                isParallel: false,
+                AD: AD, DB: DB, AE: AE, EC: EC, DE: '', BC: ''
+            };
+
+            let correctOption = data.options[0];
+            data.options = shuffle([...data.options]);
+            data.correctIndex = data.options.indexOf(correctOption);
+
+            return data;
+        }
+    }
+
+    // --- Rendering Engine ---
+    function textTag(x, y, text, isItalic=false, colorClass="tri-label") {
+        if(text === '' || text === undefined) return '';
+        return `<text x="${x}" y="${y}" class="${colorClass} ${isItalic ? 'tri-italic' : ''}">${text}</text>`;
+    }
+
+    function drawParallelArrow(p1, p2) {
+        let m = scale(add(p1, p2), 0.5);
+        let v = normalize(sub(p2, p1));
+        let n = {x: -v.y, y: v.x};
+        let a1 = add(sub(m, scale(v, 8)), scale(n, 6));
+        let a2 = add(sub(m, scale(v, 8)), scale(n, -6));
+        return `<path d="M ${a1.x} ${a1.y} L ${m.x} ${m.y} L ${a2.x} ${a2.y}" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />`;
+    }
+
+    function buildTriangleSVG(gData, offsetX, offsetY) {
+        let html = '';
+        let pts = gData.vertices.map(v => `${v.x + offsetX},${v.y + offsetY}`).join(' ');
+        html += `<polygon points="${pts}" class="tri-line" />`;
+        
+        for (let i = 0; i < 3; i++) {
+            let V = gData.vertices[i];
+            let P = gData.vertices[(i + 2) % 3];
+            let N = gData.vertices[(i + 1) % 3];
+            
+            let v1 = normalize(sub(P, V));
+            let v2 = normalize(sub(N, V));
+            let bisector = normalize(add(v1, v2));
+            
+            let vPos = sub(V, scale(bisector, 30));
+            html += textTag(vPos.x + offsetX, vPos.y + offsetY, gData.vLabels[i], false, 'tri-vert');
+            
+            if (gData.angles[i] !== undefined) {
+                let cp = v1.x * v2.y - v1.y * v2.x;
+                let sweep = cp > 0 ? 1 : 0;
+                let r = 25;
+                let p1 = add(V, scale(v1, r));
+                let p2 = add(V, scale(v2, r));
+                html += `<path d="M ${p1.x + offsetX} ${p1.y + offsetY} A ${r} ${r} 0 0 ${sweep} ${p2.x + offsetX} ${p2.y + offsetY}" class="tri-arc" />`;
+                
+                let aPos = add(V, scale(bisector, 48)); 
+                html += textTag(aPos.x + offsetX, aPos.y + offsetY, gData.angles[i], ['x', 'y', 'z'].includes(gData.angles[i]));
+            }
+            
+            if (gData.sides[i] !== undefined) {
+                let M = scale(add(P, N), 0.5);
+                let edge = sub(N, P);
+                let normal = normalize({ x: edge.y, y: -edge.x });
+                
+                let dot = normal.x * M.x + normal.y * M.y;
+                if (dot < 0) normal = scale(normal, -1);
+                
+                let sPos = add(M, scale(normal, 32));
+                html += textTag(sPos.x + offsetX, sPos.y + offsetY, gData.sides[i], ['x', 'y', 'z'].includes(gData.sides[i]));
+            }
+        }
+        return html;
+    }
+
+    function buildAdvNestedSVG(d) {
+        let svg = `<svg viewBox="-150 -100 300 220" class="w-full h-auto drop-shadow-sm max-w-lg">`;
+        let A = {x: 0, y: -70}, B = {x: -80, y: 70}, C = {x: 90, y: 70};
+        let k = 0.45; // Visual scaling for D/E
+        let D = {x: A.x + k*(B.x - A.x), y: A.y + k*(B.y - A.y)};
+        let E = {x: A.x + k*(C.x - A.x), y: A.y + k*(C.y - A.y)};
+
+        svg += `<polygon points="${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}" class="tri-line" />`;
+        svg += `<line x1="${D.x}" y1="${D.y}" x2="${E.x}" y2="${E.y}" class="tri-line" />`;
+
+        if (d.isParallel) {
+            svg += drawParallelArrow(D, E);
+            svg += drawParallelArrow(B, C);
+        }
+
+        // Vertex Labels
+        svg += textTag(A.x, A.y - 15, 'A', false, 'tri-vert');
+        svg += textTag(B.x - 15, B.y + 10, 'B', false, 'tri-vert');
+        svg += textTag(C.x + 15, C.y + 10, 'C', false, 'tri-vert');
+        svg += textTag(D.x - 15, D.y - 5, 'D', false, 'tri-vert');
+        svg += textTag(E.x + 15, E.y - 5, 'E', false, 'tri-vert');
+
+        // Side Lengths
+        svg += textTag((A.x+D.x)/2 - 15, (A.y+D.y)/2 - 5, d.AD);
+        svg += textTag((D.x+B.x)/2 - 15, (D.y+B.y)/2, d.DB);
+        svg += textTag((A.x+E.x)/2 + 15, (A.y+E.y)/2 - 5, d.AE);
+        svg += textTag((E.x+C.x)/2 + 15, (E.y+C.y)/2, d.EC);
+        svg += textTag((D.x+E.x)/2, D.y - 10, d.DE, d.DE==='x');
+        svg += textTag((B.x+C.x)/2, B.y + 20, d.BC, d.BC==='x');
+
+        svg += `</svg>`;
+        return svg;
+    }
+
+    function buildAdvHourglassSVG(d) {
+        let svg = `<svg viewBox="-150 -120 300 240" class="w-full h-auto drop-shadow-sm max-w-lg">`;
+        let E = {x: 0, y: 0};
+        let A = {x: -40, y: -60}, B = {x: 50, y: -60};
+        let k = 1.3; // Visual scale
+        let C = {x: 40 * k, y: 60 * k}, D = {x: -50 * k, y: 60 * k};
+
+        svg += `<polygon points="${A.x},${A.y} ${B.x},${B.y} ${E.x},${E.y}" class="tri-line" />`;
+        svg += `<polygon points="${C.x},${C.y} ${D.x},${D.y} ${E.x},${E.y}" class="tri-line" />`;
+
+        if (d.isParallel) {
+            svg += drawParallelArrow(A, B);
+            svg += drawParallelArrow(D, C); // Draw D to C so arrows point right
+        }
+
+        // Vertex Labels
+        svg += textTag(A.x - 15, A.y - 10, 'A', false, 'tri-vert');
+        svg += textTag(B.x + 15, B.y - 10, 'B', false, 'tri-vert');
+        svg += textTag(C.x + 15, C.y + 10, 'C', false, 'tri-vert');
+        svg += textTag(D.x - 15, D.y + 10, 'D', false, 'tri-vert');
+        svg += textTag(E.x + 15, E.y, 'E', false, 'tri-vert');
+
+        // Side Lengths
+        svg += textTag((A.x+E.x)/2 - 15, (A.y+E.y)/2 - 5, d.AE);
+        svg += textTag((E.x+C.x)/2 + 15, (E.y+C.y)/2 + 5, d.EC);
+        svg += textTag((B.x+E.x)/2 + 15, (B.y+E.y)/2 - 5, d.BE);
+        svg += textTag((E.x+D.x)/2 - 15, (E.y+D.y)/2 + 5, d.ED);
+        svg += textTag((A.x+B.x)/2, A.y - 15, d.AB, d.AB==='x');
+        svg += textTag((D.x+C.x)/2, D.y + 15, d.CD, d.CD==='x');
+
+        svg += `</svg>`;
+        return svg;
+    }
+
+    function buildSVG(d) {
+        if (d.topic === 'advanced') {
+            if (d.advType === 'nested') return buildAdvNestedSVG(d);
+            if (d.advType === 'hourglass') return buildAdvHourglassSVG(d);
+        }
+
+        // --- Original Standard Generation ---
+        let baseVerts = [{ x: 0, y: -55 }, { x: -45, y: 45 }, { x: 55, y: 30 }];
+        let cx = (baseVerts[0].x + baseVerts[1].x + baseVerts[2].x) / 3;
+        let cy = (baseVerts[0].y + baseVerts[1].y + baseVerts[2].y) / 3;
+        baseVerts = baseVerts.map(v => ({ x: v.x - cx, y: v.y - cy })); 
+
+        if (d.isThreeTriangles) {
+            let svgHtml = `<svg viewBox="0 0 1000 350" class="w-full h-auto drop-shadow-sm max-w-5xl">`;
+            const xOffsets = [170, 500, 830];
+            const scales = shuffle([1.1, 1.3, 1.5]); 
+            d.triangles.forEach((tri, index) => {
+                let rot = rand(0, 359);
+                let geom = {
+                    vertices: baseVerts.map(v => rotate(v.x * scales[index], v.y * scales[index], rot)),
+                    vLabels: tri.verts,
+                    angles: tri.display.angles,
+                    sides: tri.display.sides
+                };
+                svgHtml += buildTriangleSVG(geom, xOffsets[index], 175);
+            });
+            svgHtml += `</svg>`;
+            return svgHtml;
+        } else {
+            let svgHtml = `<svg viewBox="0 0 800 350" class="w-full h-auto drop-shadow-sm max-w-4xl">`;
+            let rot1 = rand(0, 359);
+            let rot2 = rand(0, 359);
+            let t1_geom = {
+                vertices: baseVerts.map(v => rotate(v.x * 1.2, v.y * 1.2, rot1)),
+                vLabels: d.t1_verts,
+                angles: d.t1_display.angles,
+                sides: d.t1_display.sides
+            };
+            let t2_geom = {
+                vertices: baseVerts.map(v => rotate(v.x * 1.6, v.y * 1.6, rot2)),
+                vLabels: d.t2_verts,
+                angles: d.t2_display.angles,
+                sides: d.t2_display.sides
+            };
+            svgHtml += buildTriangleSVG(t1_geom, 240, 175);
+            svgHtml += buildTriangleSVG(t2_geom, 560, 175);
+            svgHtml += `</svg>`;
+            return svgHtml;
+        }
+    }
+
+    // --- Interaction & Rendering ---
+    function selectOption(index) {
+        if (state.isAnswered) return;
+        state.selectedOption = index;
+        
+        document.querySelectorAll('.mc-option').forEach((el, i) => {
+            if (i === index) {
+                el.classList.add('ring-4', 'ring-purple-500', 'bg-purple-50');
+                el.classList.remove('bg-white', 'border-slate-200');
+            } else {
+                el.classList.remove('ring-4', 'ring-purple-500', 'bg-purple-50');
+                el.classList.add('bg-white', 'border-slate-200');
+            }
+        });
+    }
+
+    function renderQuestion() {
+        state.selectedOption = null;
+        let data;
+
+        if (state.currentTopic === 'property') {
+            data = generatePropertyQuestion();
+        } else if (state.currentTopic === 'proving') {
+            if (Math.random() > 0.5) data = generateProvingQuestion2Triangles();
+            else data = generateProvingQuestion3Triangles();
+        } else if (state.currentTopic === 'advanced') {
+            data = generateAdvancedQuestion();
+        }
+
+        document.getElementById('questionPrompt').innerHTML = data.simStatement;
+
+        if (!data.isMC) {
+            document.getElementById('inputsContainer').classList.remove('hidden');
+            document.getElementById('mcContainer').classList.add('hidden');
+            
+            const container = document.getElementById('inputsContainer');
+            container.innerHTML = '';
+            
+            let ansList = Array.isArray(data.ans) ? data.ans : [data.ans];
+            
+            ansList.forEach((ansData) => {
+                const row = document.createElement('div');
+                row.className = "flex flex-col md:flex-row items-center gap-3 mb-3 bg-slate-50 p-3 rounded-xl border border-slate-100 shadow-sm transition-all justify-center";
+                row.id = `row-${ansData.var}`;
+                
+                let reasonHTML = '';
+                if (ansData.reason) {
+                    reasonHTML = `
+                        <select id="reason-${ansData.var}" class="flex-1 md:w-64 p-2 border-2 border-slate-200 rounded-xl font-medium text-slate-600 bg-white focus:border-blue-500 outline-none transition-colors cursor-pointer text-sm">
+                            <option value="">Select reason...</option>
+                            <option value="(Corr ∠s, ~△)">(Corr ∠s, ~△)</option>
+                            <option value="(Corr sides, ~△)">(Corr sides, ~△)</option>
+                            <option value="(Base ∠s, isos. △)">(Base ∠s, isos. △)</option>
+                            <option value="(∠ sum of △)">(∠ sum of △)</option>
+                        </select>
+                    `;
+                }
+
+                row.innerHTML = `
+                    <div class="flex items-center gap-3 w-full md:w-auto justify-center md:justify-start">
+                        <span class="text-2xl font-bold font-serif italic text-blue-700 w-8 text-right">${ansData.var}</span>
+                        <span class="text-xl font-bold text-slate-500">=</span>
+                        <input type="number" id="input-${ansData.var}" class="w-24 p-2 border-2 border-slate-200 rounded-xl text-center font-bold text-lg focus:border-blue-500 focus:ring-0 outline-none transition-colors" placeholder="Val" />
+                    </div>
+                    ${reasonHTML ? `<div class="flex items-center gap-3 w-full md:w-auto md:ml-4">${reasonHTML}</div>` : ''}
+                    <div id="status-${ansData.var}" class="w-8 h-8 flex items-center justify-center shrink-0"></div>
+                `;
+                container.appendChild(row);
+            });
+
+        } else {
+            document.getElementById('inputsContainer').classList.add('hidden');
+            document.getElementById('mcContainer').classList.remove('hidden');
+
+            const container = document.getElementById('mcContainer');
+            container.innerHTML = '';
+            data.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "mc-option w-full text-left p-4 rounded-xl border-2 border-slate-200 bg-white hover:border-purple-400 font-bold text-slate-700 transition-all cursor-pointer shadow-sm relative overflow-hidden";
+                btn.innerHTML = `<span class="inline-block w-8 text-purple-600">${String.fromCharCode(65 + idx)}.</span> <span class="align-middle">${opt}</span>`;
+                btn.onclick = () => selectOption(idx);
+                container.appendChild(btn);
+            });
+        }
+
+        state.currentData = data;
+        document.getElementById('svgContainer').innerHTML = buildSVG(data);
+
+        if (window.MathJax) {
+            MathJax.typesetPromise([document.getElementById('questionPrompt'), document.getElementById('mcContainer')]);
+        }
+    }
+
+    function submitAnswers() {
+        if (state.isAnswered) {
+            nextQuestion();
+            return;
+        }
+
+        const data = state.currentData;
+        let isCorrect = true;
+
+        if (!data.isMC) {
+            let ansList = Array.isArray(data.ans) ? data.ans : [data.ans];
+            ansList.forEach(ans => {
+                const valInput = document.getElementById(`input-${ans.var}`);
+                const reasonSelect = document.getElementById(`reason-${ans.var}`);
+                const statusBox = document.getElementById(`status-${ans.var}`);
+                const row = document.getElementById(`row-${ans.var}`);
+
+                const userVal = parseFloat(valInput.value);
+                let reasonCorrect = true;
+
+                if (ans.reason && reasonSelect) {
+                    if (reasonSelect.value !== ans.reason) reasonCorrect = false;
+                }
+
+                if (userVal === ans.val && reasonCorrect) {
+                    statusBox.innerHTML = `<svg class="w-7 h-7 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>`;
+                    row.classList.add('bg-green-50', 'border-green-200');
+                    valInput.classList.add('bg-white', 'text-green-700', 'border-green-300');
+                    if (reasonSelect) reasonSelect.classList.add('bg-white', 'text-green-700', 'border-green-300');
+                } else {
+                    isCorrect = false;
+                    statusBox.innerHTML = `<svg class="w-7 h-7 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>`;
+                    row.classList.add('bg-red-50', 'border-red-200');
+                    valInput.value = ans.val;
+                    valInput.classList.add('bg-red-100', 'text-red-700', 'border-red-300');
+                    if (reasonSelect) {
+                        reasonSelect.value = ans.reason;
+                        reasonSelect.classList.add('bg-red-100', 'text-red-700', 'border-red-300');
+                    }
+                }
+                valInput.disabled = true;
+                if (reasonSelect) reasonSelect.disabled = true;
+            });
+        } 
+        else {
+            if (state.selectedOption === null) {
+                alert("Please select an option before checking.");
+                return;
+            }
+
+            isCorrect = (state.selectedOption === data.correctIndex);
+            
+            document.querySelectorAll('.mc-option').forEach((el, i) => {
+                el.classList.remove('ring-4', 'ring-purple-500', 'cursor-pointer', 'hover:border-purple-400');
+                el.onclick = null; 
+
+                if (i === data.correctIndex) {
+                    el.classList.add('bg-green-100', 'border-green-500', 'text-green-800');
+                } else if (i === state.selectedOption && !isCorrect) {
+                    el.classList.add('bg-red-100', 'border-red-500', 'text-red-800');
+                } else {
+                    el.classList.add('opacity-50');
+                }
+            });
+        }
+
+        if (isCorrect) {
+            state.score++;
+            document.getElementById('score').textContent = state.score;
+            // Report progress to index dashboard if available
+            if (window && typeof window.__mq_increment === 'function') {
+                window.__mq_increment('similarity', 1);
+            } else {
+                try {
+                    const key = 'mq_score_similarity';
+                    const curr = parseInt(localStorage.getItem(key) || '0', 10);
+                    localStorage.setItem(key, String(curr + 1));
+                } catch (e) { /* ignore storage errors */ }
+            }
+        }
+
+        state.isAnswered = true;
+        
+        const btn = document.getElementById('actionBtn');
+        btn.classList.remove('bg-blue-600', 'hover:bg-blue-700', 'bg-purple-600', 'hover:bg-purple-700', 'bg-rose-600', 'hover:bg-rose-700');
+        btn.classList.add('bg-slate-800', 'hover:bg-slate-900');
+        
+        const btnText = state.questionCount === state.maxQuestions ? 'View Results' : 'Next Question';
+        btn.innerHTML = `<span>${btnText}</span><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>`;
+    }
+
+    function nextQuestion() {
+        if (state.questionCount >= state.maxQuestions) {
+            showResults();
+            return;
+        }
+
+        state.questionCount++;
+        document.getElementById('qCount').textContent = state.questionCount;
+        state.isAnswered = false;
+
+        const btn = document.getElementById('actionBtn');
+        btn.classList.remove('bg-slate-800', 'hover:bg-slate-900');
+        
+        if (state.currentTopic === 'property') {
+            btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+        } else if (state.currentTopic === 'proving') {
+            btn.classList.add('bg-purple-600', 'hover:bg-purple-700');
+        } else {
+            btn.classList.add('bg-rose-600', 'hover:bg-rose-700');
+        }
+        
+        btn.innerHTML = `<span>Check Answers</span><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+
+        renderQuestion();
+    }
+
+    window.onload = loadName;
+
+</script>
+</body>
+</html>

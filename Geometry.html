@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geometry Mastery</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: linear-gradient(135deg, #e0f2fe 0%, #e0e7ff 100%);
+            height: 100vh; 
+            overflow-y: auto; 
+        }
+
+        h1, h2, h3, .fun-font {
+            font-family: 'Fredoka', sans-serif;
+        }
+        
+        /* 3D Button Styling */
+        .option-btn {
+            transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid #cbd5e1;
+            border-bottom-width: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+        .option-btn:hover {
+            transform: translateY(-1px);
+            filter: brightness(105%);
+        }
+        .option-btn:active {
+            transform: translateY(2px);
+            border-bottom-width: 1px;
+            margin-top: 2px;
+            margin-bottom: 0px; 
+        }
+        .option-btn.selected {
+            background-color: #4f46e5;
+            color: white;
+            border-color: #4338ca;
+        }
+        
+        canvas {
+            border-radius: 1.5rem;
+            background: #ffffff;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 2px solid #eef2ff;
+            touch-action: none; 
+            width: 100%;
+            height: auto;
+            max-height: 240px; 
+            object-fit: contain;
+        }
+
+        .fade-in { animation: fadeIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+        .modal-overlay { background-color: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); }
+        
+        .streak-fire { animation: bounce 2s infinite; display: inline-block; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: scale(1.2) translateY(-2px); } }
+
+        /* Confetti Animation */
+        .confetti {
+            position: absolute;
+            width: 10px; height: 10px;
+            background-color: #f00;
+            animation: fall linear forwards;
+        }
+        @keyframes fall { to { transform: translateY(100vh) rotate(720deg); } }
+        
+        /* Correct Flash */
+        @keyframes flashGreen { 0% { background-color: rgba(34, 197, 94, 0.2); } 100% { background-color: transparent; } }
+        .flash-correct { animation: flashGreen 0.5s ease-out; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+    </style>
+</head>
+<body class="flex flex-col items-center p-2 sm:p-4 text-slate-800" id="mainBody">
+
+    <!-- Back to Dashboard button -->
+    <button onclick="window.location.href='index.html'" 
+            title="Back to Dashboard"
+            style="position:fixed;left:14px;top:14px;z-index:9999;padding:8px 12px;border-radius:10px;background:#ffffff;border:1px solid rgba(0,0,0,0.06);box-shadow:0 6px 18px rgba(0,0,0,0.06);font-weight:700;cursor:pointer">← Dashboard</button>
+
+    <!-- Confetti Container -->
+    <div id="confettiContainer" class="fixed inset-0 pointer-events-none z-50 overflow-hidden"></div>
+
+    <!-- Streak & Score Header -->
+    <div class="w-full max-w-5xl flex justify-between items-center mb-2 px-2 z-10">
+        <!-- Score Pill -->
+        <div id="scorePill" class="hidden bg-white/80 backdrop-blur px-4 py-1.5 rounded-full shadow-sm border border-indigo-100 flex items-center gap-2">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Score</span>
+            <span id="currentScoreDisplay" class="text-lg fun-font font-bold text-indigo-600">0</span>
+        </div>
+        
+        <!-- Streak Counter -->
+        <div class="flex flex-col items-end ml-auto">
+            <div class="flex items-center gap-1 bg-white/80 backdrop-blur px-3 py-1 rounded-full shadow-sm border border-orange-200 ring-2 ring-orange-50">
+                <span class="text-xl streak-fire">🔥</span>
+                <span id="streakCount" class="text-lg fun-font font-bold text-orange-500">0</span>
+            </div>
+            <p class="text-[10px] text-slate-500 mt-1 font-semibold bg-white/60 px-2 rounded-lg text-right">
+                Challenge Mode: Score 6+<br>(Resets at Noon)
+            </p>
+        </div>
+    </div>
+
+    <!-- Header (Compact) -->
+    <header class="w-full max-w-3xl text-center mb-4 fade-in">
+        <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 drop-shadow-sm">Geometry Mastery</h1>
+        <p class="text-xs text-slate-500 font-medium mt-1">Find <span class="font-serif italic font-bold text-indigo-600 text-sm">x</span> & choose the reason.</p>
+    </header>
+
+    <!-- MAIN MENU -->
+    <div id="screen-menu" class="w-full max-w-xl bg-white/90 backdrop-blur-xl p-6 rounded-3xl shadow-xl border border-white fade-in relative overflow-hidden">
+        
+        <div class="mb-5">
+            <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-wider ml-1">Student Name</label>
+            <input id="inputName" type="text" placeholder="Enter your name..." class="w-full p-3 text-sm bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-indigo-500 focus:bg-white focus:outline-none transition font-semibold text-slate-700 placeholder-slate-400">
+        </div>
+        
+        <div class="space-y-3">
+            <h3 class="text-sm font-bold text-slate-800 ml-1">Choose a Topic:</h3>
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="app.startTopic('lines')" class="option-btn bg-white hover:bg-indigo-50 border-slate-200 hover:border-indigo-300 text-slate-600 hover:text-indigo-700 p-4 rounded-2xl flex flex-col items-center justify-center gap-1 h-24">
+                    <span class="text-2xl">✛</span>
+                    <span class="text-xs font-bold">Lines</span>
+                </button>
+                <button onclick="app.startTopic('parallel')" class="option-btn bg-white hover:bg-blue-50 border-slate-200 hover:border-blue-300 text-slate-600 hover:text-blue-700 p-4 rounded-2xl flex flex-col items-center justify-center gap-1 h-24">
+                    <span class="text-2xl">∥</span>
+                    <span class="text-xs font-bold">Parallel</span>
+                </button>
+                <button onclick="app.startTopic('triangles')" class="option-btn bg-white hover:bg-purple-50 border-slate-200 hover:border-purple-300 text-slate-600 hover:text-purple-700 p-4 rounded-2xl flex flex-col items-center justify-center gap-1 h-24">
+                    <span class="text-2xl">△</span>
+                    <span class="text-xs font-bold">Triangles</span>
+                </button>
+                <button onclick="app.startTopic('polygons')" class="option-btn bg-white hover:bg-emerald-50 border-slate-200 hover:border-emerald-300 text-slate-600 hover:text-emerald-700 p-4 rounded-2xl flex flex-col items-center justify-center gap-1 h-24">
+                    <span class="text-2xl">⬠</span>
+                    <span class="text-xs font-bold">Polygons</span>
+                </button>
+            </div>
+            
+            <div class="pt-3 mt-1">
+                <button onclick="app.startTopic('challenge')" class="w-full p-4 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-2xl shadow-lg shadow-orange-200 hover:shadow-xl hover:from-orange-600 hover:to-red-600 transition transform hover:-translate-y-0.5 active:translate-y-0.5 border-b-4 border-red-700 active:border-b-0">
+                    <div class="flex items-center justify-center gap-3">
+                        <span class="text-2xl">🏆</span>
+                        <div class="text-left">
+                            <div class="font-bold text-sm fun-font tracking-wide">CHALLENGE MODE</div>
+                            <div class="text-[10px] opacity-90 font-medium">Build your daily streak!</div>
+                        </div>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- QUIZ INTERFACE (Compact) -->
+    <div id="screen-quiz" class="w-full max-w-4xl hidden fade-in flex flex-col md:flex-row gap-4 h-full pb-4">
+        
+        <!-- Left: Visual -->
+        <div class="w-full md:w-5/12 flex flex-col">
+            <div class="bg-white p-4 rounded-3xl shadow-lg border-2 border-slate-100 relative">
+                <div class="flex justify-between items-center mb-3">
+                    <button onclick="app.requestExit()" class="text-[10px] font-bold text-slate-400 hover:text-red-500 transition flex items-center gap-1 uppercase tracking-wider bg-slate-100 px-2 py-1 rounded-lg hover:bg-red-50">
+                        ✕ Exit
+                    </button>
+                    <div class="text-[10px] font-bold text-indigo-500 bg-indigo-50 px-3 py-1 rounded-full uppercase tracking-wide border border-indigo-100" id="questionTracker">1 / 10</div>
+                </div>
+                
+                <div class="flex justify-center items-center bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-200 overflow-hidden relative" style="min-height: 220px;">
+                    <!-- Grid Background -->
+                    <div class="absolute inset-0 opacity-[0.03]" style="background-image: radial-gradient(#64748b 1px, transparent 1px); background-size: 20px 20px;"></div>
+                    <canvas id="geoCanvas" width="350" height="260"></canvas>
+                </div>
+                
+                <p class="text-center mt-3 font-bold text-slate-300 text-[10px] uppercase tracking-widest">Figure not to scale</p>
+            </div>
+        </div>
+
+        <!-- Right: Inputs -->
+        <div class="w-full md:w-7/12 flex flex-col gap-3">
+            
+            <div class="grid grid-cols-2 gap-3">
+                <!-- Value Selection -->
+                <div class="bg-white/80 backdrop-blur p-3 rounded-2xl shadow-sm border border-slate-200 col-span-2 sm:col-span-1">
+                    <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                        <span class="bg-indigo-100 text-indigo-600 w-5 h-5 rounded-full flex items-center justify-center text-[10px] shadow-sm">1</span>
+                        Value
+                    </h3>
+                    <div id="valueOptions" class="grid grid-cols-2 gap-2"></div>
+                </div>
+
+                <!-- Reason Selection -->
+                <div class="bg-white/80 backdrop-blur p-3 rounded-2xl shadow-sm border border-slate-200 col-span-2 sm:col-span-1">
+                    <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                        <span class="bg-purple-100 text-purple-600 w-5 h-5 rounded-full flex items-center justify-center text-[10px] shadow-sm">2</span>
+                        Reason(s)
+                    </h3>
+                    <div id="reasonOptions" class="grid grid-cols-1 gap-1.5"></div>
+                </div>
+            </div>
+
+            <button id="submitBtn" onclick="app.checkAnswer()" class="w-full py-3.5 bg-slate-800 text-white font-bold text-sm rounded-xl shadow-lg shadow-slate-200 hover:bg-slate-900 transition transform hover:scale-[1.01] active:scale-[0.98] border-b-4 border-slate-950 active:border-b-0 active:mt-1">
+                SUBMIT ANSWER
+            </button>
+            
+            <button id="nextBtn" onclick="app.nextQuestion()" class="hidden w-full py-3.5 bg-indigo-600 text-white font-bold text-sm rounded-xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition transform hover:scale-[1.01] active:scale-[0.98] border-b-4 border-indigo-800 active:border-b-0 active:mt-1 flex items-center justify-center gap-2">
+                NEXT QUESTION →
+            </button>
+            
+            <!-- Feedback -->
+            <div id="feedbackArea" class="hidden p-4 rounded-2xl text-center text-sm shadow-md border-2 animate-bounce-in"></div>
+        </div>
+    </div>
+
+    <!-- RESULTS SCREEN -->
+    <div id="screen-results" class="w-full max-w-md bg-white p-8 rounded-3xl shadow-2xl border-4 border-white hidden fade-in text-center relative overflow-hidden mt-4 ring-4 ring-indigo-50">
+        <div class="absolute top-0 left-0 w-full h-3 bg-gradient-to-r from-green-400 via-blue-500 to-purple-600"></div>
+        
+        <h2 class="text-3xl font-extrabold text-slate-800 mb-6 mt-2 fun-font">Quiz Complete!</h2>
+        
+        <div class="bg-slate-50 p-5 rounded-2xl mb-8 text-left border border-slate-100 shadow-inner">
+            <div class="flex justify-between items-end mb-2 border-b border-slate-200 pb-2">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Student</p>
+                <p class="text-sm font-bold text-slate-800" id="resName"></p>
+            </div>
+            <div class="flex justify-between items-end">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Date</p>
+                <p class="text-xs font-mono text-slate-500 text-right" id="resTime"></p>
+            </div>
+        </div>
+
+        <div class="flex flex-col items-center mb-8">
+            <p class="text-slate-400 font-bold uppercase tracking-widest text-[10px] mb-2">Final Score</p>
+            <div class="relative inline-block">
+                <div class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br from-indigo-600 to-purple-600 tracking-tighter leading-none fun-font">
+                    <span id="resScore">0</span><span class="text-3xl text-slate-300 font-medium align-top mx-1">/</span><span id="resTotal" class="text-3xl text-slate-300 font-medium align-top">10</span>
+                </div>
+            </div>
+        </div>
+        
+        <div id="streakMessage" class="hidden bg-orange-50 border-2 border-orange-100 text-orange-600 px-4 py-3 rounded-xl mb-6 flex items-center justify-center gap-3 animate-bounce shadow-sm">
+            <span class="text-2xl">🔥</span> 
+            <span class="font-bold text-sm">Streak Increased!</span>
+        </div>
+
+        <button onclick="app.finishExit()" class="w-full py-3.5 bg-slate-800 text-white font-bold rounded-xl shadow-lg hover:bg-slate-900 transition text-sm">Return to Menu</button>
+    </div>
+
+    <!-- CUSTOM MODAL -->
+    <div id="modal" class="fixed inset-0 modal-overlay hidden flex items-center justify-center z-50 fade-in px-4">
+        <div class="bg-white p-6 rounded-3xl shadow-2xl w-full max-w-xs text-center transform transition-all scale-100 border-2 border-slate-100">
+            <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">🚪</div>
+            <h3 class="text-lg font-bold text-slate-900 mb-1">Exit Quiz?</h3>
+            <p class="text-slate-500 mb-6 text-xs font-medium">All current progress will be lost.</p>
+            <div class="flex justify-center gap-2">
+                <button onclick="app.closeModal()" class="flex-1 px-3 py-2.5 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition text-xs uppercase tracking-wide">Cancel</button>
+                <button onclick="app.confirmExit()" class="flex-1 px-3 py-2.5 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 shadow-md shadow-red-100 transition text-xs uppercase tracking-wide">Exit</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+const GeometryApp = (() => {
+    // State
+    let state = {
+        topic: null,
+        score: 0,
+        qIndex: 0,
+        totalQ: 10,
+        currentQ: null,
+        selectedVal: null,
+        selectedReasons: new Set(),
+        name: localStorage.getItem('geo_student_name') || ''
+    };
+
+    // DOM Elements
+    const els = {
+        menu: document.getElementById('screen-menu'),
+        quiz: document.getElementById('screen-quiz'),
+        results: document.getElementById('screen-results'),
+        nameInput: document.getElementById('inputName'),
+        canvas: document.getElementById('geoCanvas'),
+        ctx: document.getElementById('geoCanvas').getContext('2d'),
+        valContainer: document.getElementById('valueOptions'),
+        reasonContainer: document.getElementById('reasonOptions'),
+        submitBtn: document.getElementById('submitBtn'),
+        nextBtn: document.getElementById('nextBtn'),
+        feedback: document.getElementById('feedbackArea'),
+        tracker: document.getElementById('questionTracker'),
+        modal: document.getElementById('modal'),
+        scorePill: document.getElementById('scorePill'),
+        scoreDisplay: document.getElementById('currentScoreDisplay'),
+        streakCount: document.getElementById('streakCount'),
+        streakMsg: document.getElementById('streakMessage'),
+        body: document.getElementById('mainBody')
+    };
+
+    // Load saved name
+    if (state.name) els.nameInput.value = state.name;
+    
+    // Init Streak
+    els.streakCount.textContent = localStorage.getItem('geo_streak') || '0';
+
+    // --- DRAWING UTILITIES ---
+    const drawLine = (x1, y1, x2, y2, color='#334155', width=2.5) => {
+        els.ctx.beginPath(); els.ctx.moveTo(x1, y1); els.ctx.lineTo(x2, y2);
+        els.ctx.lineCap = 'round';
+        els.ctx.strokeStyle = color; els.ctx.lineWidth = width; els.ctx.stroke();
+    };
+
+    const drawText = (text, x, y, color='#0f172a', font='bold 14px Inter') => {
+        els.ctx.fillStyle = color; els.ctx.font = font; els.ctx.fillText(text, x, y);
+    };
+
+    // --- FIXED ANGLE DRAWING ---
+    const drawAngle = (x, y, startAngle, endAngle, label, isUnknown=false, radius=24) => {
+        if (!label && label !== 0) return; 
+
+        els.ctx.beginPath();
+        
+        let start = startAngle;
+        let end = endAngle;
+
+        // Calculate clockwise difference (Canvas draws clockwise by default)
+        let diff = end - start;
+        while (diff < 0) diff += 2 * Math.PI;
+        while (diff >= 2 * Math.PI) diff -= 2 * Math.PI;
+
+        // If difference is > PI (180 deg), it's a reflex angle. Swap to draw the interior one.
+        if (diff > Math.PI) {
+            const temp = start;
+            start = end;
+            end = temp;
+            diff = 2 * Math.PI - diff; // Update diff to the interior one
+        }
+
+        els.ctx.arc(x, y, radius, start, end);
+        els.ctx.strokeStyle = isUnknown ? '#ef4444' : '#3b82f6';
+        els.ctx.lineWidth = 2;
+        els.ctx.stroke();
+
+        // Calculate Text Position (Midpoint of the INTERIOR arc)
+        // Midpoint calculation accounting for wrap-around
+        // We know we are drawing clockwise from 'start' to 'end' and dist is < PI.
+        // So mid is just start + diff/2
+        let mid = start + diff / 2;
+
+        const textRadius = radius + 18; 
+        const tx = x + textRadius * Math.cos(mid);
+        const ty = y + textRadius * Math.sin(mid);
+
+        els.ctx.textAlign = "center";
+        els.ctx.textBaseline = "middle";
+        drawText(label, tx, ty, isUnknown ? '#ef4444' : '#0f172a');
+        els.ctx.textAlign = "start"; 
+        els.ctx.textBaseline = "alphabetic";
+    };
+    
+    const drawArrow = (x, y, angle) => {
+        els.ctx.save();
+        els.ctx.translate(x, y);
+        els.ctx.rotate(angle);
+        els.ctx.beginPath();
+        els.ctx.moveTo(-5, 5); els.ctx.lineTo(0, 0); els.ctx.lineTo(-5, -5);
+        els.ctx.strokeStyle = '#334155'; els.ctx.lineWidth = 2; els.ctx.stroke();
+        els.ctx.restore();
+    };
+
+    const clearCanvas = () => {
+        els.ctx.clearRect(0, 0, els.canvas.width, els.canvas.height);
+        els.ctx.fillStyle = '#f8fafc'; 
+        els.ctx.fillRect(0, 0, els.canvas.width, els.canvas.height);
+    };
+
+    // --- MATH HELPERS ---
+    const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+    const toRad = (deg) => deg * Math.PI / 180;
+    
+    // --- GENERATORS ---
+    
+    // Updated Ext Angle with Dynamic Calculation
+    const genExtAngle = () => {
+        const int1 = randInt(45, 65);
+        const int2 = randInt(45, 65);
+        const ext = int1 + int2;
+        return {
+            draw: (ctx) => {
+                const pA = {x: 120, y: 40};
+                const pB = {x: 80, y: 160};
+                const pC = {x: 200, y: 160};
+                const pD = {x: 300, y: 160}; // Extended point
+                
+                drawLine(pA.x, pA.y, pB.x, pB.y);
+                drawLine(pB.x, pB.y, pC.x, pC.y);
+                drawLine(pC.x, pC.y, pA.x, pA.y);
+                drawLine(pC.x, pC.y, pD.x, pD.y); // Extend line
+                
+                drawText("A", 120, 30); drawText("B", 70, 170); drawText("C", 195, 180); drawText("D", 310, 170);
+                
+                // Calculate angles for arcs
+                const angAB = Math.atan2(pB.y - pA.y, pB.x - pA.x);
+                const angAC = Math.atan2(pC.y - pA.y, pC.x - pA.x);
+                drawAngle(pA.x, pA.y, angAC, angAB, int1 + "°");
+
+                const angBA = Math.atan2(pA.y - pB.y, pA.x - pB.x);
+                const angBC = Math.atan2(pC.y - pB.y, pC.x - pB.y);
+                drawAngle(pB.x, pB.y, angBC, angBA, int2 + "°");
+
+                const angCA = Math.atan2(pA.y - pC.y, pA.x - pC.x);
+                const angCD = Math.atan2(pD.y - pC.y, pD.x - pC.x);
+                // Exterior angle is between CA and CD
+                drawAngle(pC.x, pC.y, angCA, angCD, "x", true, 30);
+            },
+            val: ext,
+            correctReasons: ["ext. ∠ of △"],
+            vals: [ext, 180-ext, Math.abs(int1-int2), 180-(int1+int2)],
+            reasons: ["ext. ∠ of △", "∠ sum of △", "adj. ∠s on st. line", "corr. ∠s, AB//CD"]
+        };
+    };
+
+    const genStraightLine = () => {
+        const angleA = randInt(30, 150);
+        const angleB = 180 - angleA;
+        return {
+            draw: (ctx) => {
+                const cx = 150, cy = 180;
+                drawLine(40, cy, 260, cy);
+                drawText("A", 30, cy + 5); drawText("B", 270, cy + 5);
+                drawText("O", cx, cy + 20);
+                const rad = toRad(angleA);
+                const ex = cx + 90 * Math.cos(-rad);
+                const ey = cy + 90 * Math.sin(-rad);
+                drawLine(cx, cy, ex, ey);
+                drawText("C", ex, ey - 10);
+                // Angles on line are 0 (right) and PI (left)
+                // Ray is at -rad
+                drawAngle(cx, cy, -rad, 0, angleA + "°");
+                drawAngle(cx, cy, Math.PI, -rad, "x", true); 
+            },
+            val: angleB,
+            correctReasons: ["adj. ∠s on st. line"],
+            vals: [angleB, 180-angleB+10, 90+randInt(-10,10), angleB+15].map(Math.round),
+            reasons: ["adj. ∠s on st. line", "vert. opp. ∠s", "∠s at a pt.", "alt. ∠s, AB//CD"]
+        };
+    };
+
+    const genVertOpp = () => {
+        const angle = randInt(40, 140);
+        return {
+            draw: (ctx) => {
+                const cx = 150, cy = 110;
+                drawLine(40, cy + 40, 260, cy - 40); 
+                drawText("A", 30, cy + 50); drawText("B", 270, cy - 50);
+                drawLine(40, cy - 40, 260, cy + 40);
+                drawText("C", 30, cy - 50); drawText("D", 270, cy + 50);
+                
+                // Angle calculation
+                const angB = Math.atan2(-40, 110);
+                const angC = Math.atan2(-40, -110);
+                drawAngle(cx, cy, angC, angB, angle + "°", false, 35);
+                
+                const angA = Math.atan2(40, -110);
+                const angD = Math.atan2(40, 110);
+                drawAngle(cx, cy, angD, angA, "x", true, 35);
+            },
+            val: angle,
+            correctReasons: ["vert. opp. ∠s"],
+            vals: [angle, 180-angle, angle+10, 90].map(Math.round),
+            reasons: ["vert. opp. ∠s", "adj. ∠s on st. line", "alt. ∠s, AB//CD", "corr. ∠s, AB//CD"]
+        };
+    };
+
+    const genParallel = () => {
+        const type = randInt(1, 3);
+        const angle = randInt(60, 120);
+        let correctVal, reason;
+        if (type === 1) { correctVal = angle; reason = "alt. ∠s, AB//CD"; }
+        else if (type === 2) { correctVal = angle; reason = "corr. ∠s, AB//CD"; }
+        else { correctVal = 180 - angle; reason = "int. ∠s, AB//CD"; }
+
+        return {
+            draw: (ctx) => {
+                drawLine(40, 60, 260, 60); 
+                drawArrow(150, 60, 0);
+                drawText("A", 30, 65); drawText("B", 270, 65);
+                drawLine(40, 160, 260, 160); 
+                drawArrow(150, 160, 0);
+                drawText("C", 30, 165); drawText("D", 270, 165);
+                
+                // Transversal
+                drawLine(90, 20, 210, 200); 
+                drawText("E", 80, 20); drawText("F", 220, 200);
+                const pTop = {x: 116, y: 60};
+                const pBot = {x: 183, y: 160};
+                
+                // Transversal angle (down-right) ~56 deg
+                const transAng = Math.atan2(180, 120); // ~0.98 rad
+                const transAngUp = transAng + Math.PI;
+
+                if (type === 1) { // Alt
+                    drawAngle(pTop.x, pTop.y, 0, transAng, angle + "°");
+                    drawAngle(pBot.x, pBot.y, Math.PI, transAngUp, "x", true);
+                } else if (type === 2) { // Corr
+                    drawAngle(pTop.x, pTop.y, transAngUp, 0, angle + "°", false, 25); 
+                    drawAngle(pBot.x, pBot.y, transAngUp, 0, "x", true, 25);
+                } else { // Int
+                    drawAngle(pTop.x, pTop.y, 0, transAng, angle + "°");
+                    drawAngle(pBot.x, pBot.y, transAngUp, 0, "x", true);
+                }
+            },
+            val: correctVal,
+            correctReasons: [reason],
+            vals: [angle, 180-angle, angle+20, 180-angle-20].filter((v,i,a)=>a.indexOf(v)===i), 
+            reasons: ["alt. ∠s, AB//CD", "corr. ∠s, AB//CD", "int. ∠s, AB//CD", "vert. opp. ∠s"]
+        };
+    };
+
+    const genTriangleSum = () => {
+        const a = randInt(45, 75);
+        const b = randInt(45, 75);
+        const c = 180 - a - b;
+        return {
+            draw: (ctx) => {
+                const pA = {x: 150, y: 40};
+                const pB = {x: 80, y: 180};
+                const pC = {x: 220, y: 180};
+                drawLine(pA.x, pA.y, pB.x, pB.y);
+                drawLine(pB.x, pB.y, pC.x, pC.y);
+                drawLine(pC.x, pC.y, pA.x, pA.y);
+                drawText("A", 150, 30); drawText("B", 65, 190); drawText("C", 235, 190);
+                
+                // Dynamic Angles
+                const angAB = Math.atan2(pB.y-pA.y, pB.x-pA.x);
+                const angAC = Math.atan2(pC.y-pA.y, pC.x-pA.x);
+                drawAngle(pA.x, pA.y, angAC, angAB, a + "°", false, 20);
+
+                const angBA = Math.atan2(pA.y-pB.y, pA.x-pB.x);
+                const angBC = Math.atan2(pC.y-pB.y, pC.x-pB.x);
+                drawAngle(pB.x, pB.y, angBC, angBA, b + "°", false, 20);
+
+                const angCA = Math.atan2(pA.y-pC.y, pA.x-pC.x);
+                const angCB = Math.atan2(pB.y-pC.y, pB.x-pC.x);
+                drawAngle(pC.x, pC.y, angCA, angCB, "x", true, 20);
+            },
+            val: c,
+            correctReasons: ["∠ sum of △"],
+            vals: [c, 180-a, 180-b, a+b],
+            reasons: ["∠ sum of △", "ext. ∠ of △", "base ∠s of isos. △", "sum of polygon"]
+        };
+    };
+
+    const genIsosceles = () => {
+        const base = randInt(40, 70);
+        const top = 180 - 2*base;
+        const findBase = Math.random() > 0.5;
+        return {
+            draw: (ctx) => {
+                const pA = {x: 150, y: 40};
+                const pB = {x: 90, y: 190};
+                const pC = {x: 210, y: 190};
+                drawLine(pA.x, pA.y, pB.x, pB.y);
+                drawLine(pB.x, pB.y, pC.x, pC.y);
+                drawLine(pC.x, pC.y, pA.x, pA.y);
+                drawText("A", 150, 30); drawText("B", 75, 200); drawText("C", 225, 200);
+                drawLine(115, 110, 125, 120, '#ef4444', 2);
+                drawLine(175, 120, 185, 110, '#ef4444', 2);
+
+                const angAB = Math.atan2(pB.y-pA.y, pB.x-pA.x);
+                const angAC = Math.atan2(pC.y-pA.y, pC.x-pA.x);
+                const angBC = Math.atan2(pC.y-pB.y, pC.x-pB.x);
+                const angBA = Math.atan2(pA.y-pB.y, pA.x-pB.x);
+
+                if (findBase) {
+                    drawAngle(pA.x, pA.y, angAC, angAB, top + "°", false, 25);
+                    drawAngle(pB.x, pB.y, angBC, angBA, "x", true, 25);
+                } else {
+                    drawAngle(pA.x, pA.y, angAC, angAB, "x", true, 25);
+                    drawAngle(pB.x, pB.y, angBC, angBA, base + "°", false, 25);
+                }
+            },
+            val: findBase ? base : top,
+            correctReasons: ["base ∠s of isos. △", "∠ sum of △"], 
+            vals: [base, top, 180-base, 90-base].filter((v,i,a)=>a.indexOf(v)===i),
+            reasons: ["base ∠s of isos. △", "equilateral △", "ext. ∠ of △", "∠ sum of △", "alt. ∠s, AB//CD"]
+        };
+    };
+    
+    const genEquilateral = () => {
+        return {
+            draw: (ctx) => {
+                const pA = {x: 150, y: 40};
+                const pB = {x: 80, y: 170};
+                const pC = {x: 220, y: 170};
+                drawLine(pA.x, pA.y, pB.x, pB.y);
+                drawLine(pB.x, pB.y, pC.x, pC.y);
+                drawLine(pC.x, pC.y, pA.x, pA.y);
+                drawText("A", 150, 30); drawText("B", 65, 180); drawText("C", 235, 180);
+                drawLine(110, 100, 120, 110, '#ef4444', 2);
+                drawLine(180, 110, 190, 100, '#ef4444', 2);
+                drawLine(150, 160, 150, 180, '#ef4444', 2);
+                
+                const angAB = Math.atan2(pB.y-pA.y, pB.x-pA.x);
+                const angAC = Math.atan2(pC.y-pA.y, pC.x-pA.x);
+                drawAngle(pA.x, pA.y, angAC, angAB, "x", true, 25);
+            },
+            val: 60,
+            correctReasons: ["prop. of equilateral △"],
+            vals: [60, 90, 45, 30],
+            reasons: ["prop. of equilateral △", "base ∠s of isos. △", "∠ sum of △", "adj. ∠s on st. line"]
+        };
+    };
+    
+    const genPolygon = () => {
+        const type = Math.random() > 0.5 ? 1 : 0; 
+        const sides = randInt(5, 8); 
+        const sum = (sides - 2) * 180;
+        const names = {5: "Pentagon", 6: "Hexagon", 7: "Heptagon", 8: "Octagon"};
+        return {
+            draw: (ctx) => {
+                const cx = 150, cy = 110, r = 65;
+                let vertices = [];
+                for (let i = 0; i < sides; i++) {
+                    const ang = i * 2 * Math.PI / sides - Math.PI/2;
+                    vertices.push({x: cx + r * Math.cos(ang), y: cy + r * Math.sin(ang)});
+                }
+                ctx.beginPath();
+                ctx.moveTo(vertices[0].x, vertices[0].y);
+                for(let i=1; i<vertices.length; i++) ctx.lineTo(vertices[i].x, vertices[i].y);
+                ctx.closePath();
+                ctx.strokeStyle = '#374151'; ctx.lineWidth = 2; ctx.stroke();
+                
+                if (type === 0) {
+                    const p0 = vertices[0];
+                    const pPrev = vertices[sides-1];
+                    const pNext = vertices[1];
+                    const angToPrev = Math.atan2(pPrev.y - p0.y, pPrev.x - p0.x);
+                    const angToNext = Math.atan2(pNext.y - p0.y, pNext.x - p0.y);
+                    drawAngle(p0.x, p0.y, angToNext, angToPrev, "", false, 15);
+                }
+
+                if (type === 0) {
+                    drawText(names[sides], 110, 200);
+                    drawText("Sum of int. ∠s = x", 70, 215);
+                } else {
+                    drawText(`Sum = ${sum}°`, 110, 200);
+                    drawText("Sides = x", 110, 215);
+                }
+            },
+            val: type === 0 ? sum : sides,
+            correctReasons: ["∠ sum of polygon"],
+            vals: type === 0 ? [sum, 360, (sides-2)*180/sides, 180].map(Math.round) : [sides, sides+1, sides-1, sides+2],
+            reasons: ["∠ sum of polygon", "sum of ext. ∠s", "prop. of reg. polygon", "∠ sum of △"]
+        };
+    };
+
+    // --- CONTROLLER ---
+    const shuffle = (array) => {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    };
+
+    const generateQuestion = () => {
+        const topic = state.topic;
+        let q;
+        if (topic === 'challenge') {
+             const types = [genStraightLine, genVertOpp, genParallel, genTriangleSum, genExtAngle, genIsosceles, genEquilateral, genPolygon];
+             q = types[randInt(0, types.length-1)]();
+        } else if (topic === 'lines') {
+            const r = Math.random();
+            if (r < 0.33) q = genStraightLine();
+            else if (r < 0.66) q = genVertOpp();
+            else q = genStraightLine(); 
+        } else if (topic === 'parallel') {
+            q = genParallel();
+        } else if (topic === 'triangles') {
+            const r = Math.random();
+            if (r < 0.3) q = genTriangleSum();
+            else if (r < 0.6) q = genExtAngle();
+            else if (r < 0.9) q = genIsosceles();
+            else q = genEquilateral();
+        } else {
+            q = genPolygon();
+        }
+        return q;
+    };
+
+    const renderQuestion = () => {
+        const q = state.currentQ;
+        clearCanvas();
+        q.draw(els.ctx);
+        
+        els.valContainer.innerHTML = '';
+        const vOpts = shuffle([...q.vals]);
+        const uniqueV = [...new Set(vOpts)];
+        while (uniqueV.length < 4) uniqueV.push(randInt(10, 180));
+        
+        uniqueV.slice(0, 4).forEach(v => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn w-full p-2 rounded-lg font-bold text-base text-slate-700 bg-white hover:bg-indigo-50 hover:border-indigo-200 transition';
+            btn.textContent = v; 
+            if (state.topic !== 'polygons' || (state.topic==='polygons' && q.val > 20)) btn.textContent += "°";
+            btn.onclick = () => selectVal(btn, v);
+            els.valContainer.appendChild(btn);
+        });
+
+        els.reasonContainer.innerHTML = '';
+        const allReasons = new Set(q.correctReasons);
+        while(allReasons.size < 4) {
+            allReasons.add(q.reasons[Math.floor(Math.random() * q.reasons.length)]);
+        }
+        const rOpts = shuffle(Array.from(allReasons));
+        
+        rOpts.forEach(r => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn w-full p-3 rounded-lg text-xs font-bold text-slate-600 bg-white hover:bg-purple-50 hover:border-purple-200 transition text-left flex justify-between items-center';
+            btn.innerHTML = `<span>${r}</span> <span class="check hidden text-indigo-600 font-bold">✔</span>`;
+            btn.onclick = () => toggleReason(btn, r);
+            els.reasonContainer.appendChild(btn);
+        });
+        
+        state.selectedVal = null;
+        state.selectedReasons.clear();
+        els.submitBtn.classList.remove('hidden');
+        els.nextBtn.classList.add('hidden');
+        els.feedback.classList.add('hidden');
+        els.tracker.textContent = `${state.qIndex + 1}/${state.totalQ}`;
+    };
+
+    const selectVal = (btn, val) => {
+        Array.from(els.valContainer.children).forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        state.selectedVal = val;
+    };
+
+    const toggleReason = (btn, reason) => {
+        if (state.selectedReasons.has(reason)) {
+            state.selectedReasons.delete(reason);
+            btn.classList.remove('selected');
+            btn.querySelector('.check').classList.add('hidden');
+        } else {
+            state.selectedReasons.add(reason);
+            btn.classList.add('selected');
+            btn.querySelector('.check').classList.remove('hidden');
+        }
+    };
+
+    const startTopic = (topicName) => {
+        const name = els.nameInput.value.trim();
+        if (!name) { alert("Please enter your name."); return; }
+        localStorage.setItem('geo_student_name', name);
+        state.name = name;
+        state.topic = topicName;
+        state.score = 0;
+        state.qIndex = 0;
+        
+        els.scorePill.classList.remove('hidden');
+        els.scoreDisplay.textContent = 0;
+        els.menu.classList.add('hidden');
+        els.quiz.classList.remove('hidden');
+        nextQuestion(); 
+    };
+
+    const nextQuestion = () => {
+        if (state.qIndex >= state.totalQ && state.currentQ) { finishQuiz(); return; }
+        state.currentQ = generateQuestion();
+        renderQuestion();
+    };
+
+    const checkAnswer = () => {
+        if (state.selectedVal === null || state.selectedReasons.size === 0) {
+            alert("Please select a value AND at least one reason."); return;
+        }
+        const isCorrectVal = Math.abs(state.selectedVal - state.currentQ.val) < 0.1;
+        const correctSet = new Set(state.currentQ.correctReasons);
+        const userSet = state.selectedReasons;
+        let isCorrectReasons = (correctSet.size === userSet.size) && [...correctSet].every(r => userSet.has(r));
+        
+        // Correct flash
+        if (isCorrectVal && isCorrectReasons) {
+            els.body.classList.add('flash-correct');
+            setTimeout(() => els.body.classList.remove('flash-correct'), 500);
+            
+            // Confetti
+            for(let i=0; i<30; i++) createConfetti();
+        }
+
+        els.feedback.classList.remove('hidden');
+        if (isCorrectVal && isCorrectReasons) {
+            state.score++;
+            els.scoreDisplay.textContent = state.score;
+            // Report progress to index dashboard if available
+            if (window && typeof window.__mq_increment === 'function') {
+                window.__mq_increment('geometry', 1);
+            } else {
+                try { const key = 'mq_score_geometry'; const curr = parseInt(localStorage.getItem(key) || '0',10); localStorage.setItem(key, String(curr+1)); } catch(e){}
+            }
+            els.feedback.textContent = "Correct! Great job.";
+            els.feedback.className = "p-3 rounded-xl text-center font-bold bg-green-100 text-green-700 text-sm shadow-sm";
+        } else {
+            const reasonStr = state.currentQ.correctReasons.join(" + ");
+            els.feedback.innerHTML = `Incorrect.<br>Ans: <strong>${state.currentQ.val}</strong> | Reason: <strong>${reasonStr}</strong>`;
+            els.feedback.className = "p-3 rounded-xl text-center font-bold bg-red-50 text-red-600 text-sm border border-red-100 shadow-sm";
+        }
+        els.submitBtn.classList.add('hidden');
+        els.nextBtn.classList.remove('hidden');
+        state.qIndex++;
+    };
+
+    const checkAndIncrementStreak = (finalScore, topic) => {
+        if (topic !== 'challenge') return false;
+        if (finalScore < 6) return false;
+
+        const now = new Date();
+        const msPerDay = 24 * 60 * 60 * 1000;
+        const offsetTime = now.getTime() - (12 * 60 * 60 * 1000);
+        const currentStreakDay = Math.floor(offsetTime / msPerDay);
+        
+        const lastStreakDay = parseInt(localStorage.getItem('geo_lastStreakDay') || '-1');
+        let streak = parseInt(localStorage.getItem('geo_streak') || '0');
+        let increased = false;
+
+        if (currentStreakDay === lastStreakDay + 1) {
+            streak++; increased = true;
+        } else if (currentStreakDay > lastStreakDay + 1) {
+            streak = 1; increased = true;
+        } else if (lastStreakDay === -1) {
+            streak = 1; increased = true;
+        }
+
+        if (increased) {
+            localStorage.setItem('geo_streak', streak);
+            localStorage.setItem('geo_lastStreakDay', currentStreakDay);
+            els.streakCount.textContent = streak;
+        }
+        return increased;
+    };
+
+    const finishQuiz = () => {
+        els.quiz.classList.add('hidden');
+        els.scorePill.classList.add('hidden');
+        els.results.classList.remove('hidden');
+        document.getElementById('resName').textContent = state.name;
+        document.getElementById('resTime').textContent = new Date().toLocaleString();
+        document.getElementById('resScore').textContent = state.score;
+        document.getElementById('resTotal').textContent = state.totalQ;
+        
+        if(checkAndIncrementStreak(state.score, state.topic)) {
+            els.streakMsg.classList.remove('hidden');
+            for(let i=0; i<50; i++) setTimeout(createConfetti, i*20);
+        } else {
+            els.streakMsg.classList.add('hidden');
+        }
+    };
+
+    const createConfetti = () => {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = Math.random() * 100 + 'vw';
+        confetti.style.top = '-10px';
+        confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+        confetti.style.animationDuration = (Math.random() * 2 + 1) + 's';
+        document.getElementById('confettiContainer').appendChild(confetti);
+        setTimeout(() => confetti.remove(), 3000);
+    };
+
+    const requestExit = () => { els.modal.classList.remove('hidden'); };
+    const closeModal = () => { els.modal.classList.add('hidden'); };
+    const confirmExit = () => {
+        state.topic = null;
+        els.modal.classList.add('hidden');
+        els.results.classList.add('hidden');
+        els.quiz.classList.add('hidden');
+        els.scorePill.classList.add('hidden');
+        els.menu.classList.remove('hidden');
+    };
+    const finishExit = () => { confirmExit(); };
+
+    return { startTopic, nextQuestion, checkAnswer, requestExit, closeModal, confirmExit, finishExit };
+})();
+
+window.app = GeometryApp;
+</script>
+</body>
+</html>

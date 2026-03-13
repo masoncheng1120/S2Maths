@@ -1,0 +1,651 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Math Quiz | Student Dashboard</title>
+  
+  <!-- Friendly Student Font: Nunito -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Modern Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      --bg: #f4f7fa;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --accent: #6366f1;
+      --accent-hover: #4f46e5;
+      
+      /* Topic Colors */
+      --color-algebra: #fef3c7;
+      --color-congruence: #dcfce7;
+      --color-geometry: #dbeafe;
+      --color-ratio: #f3e8ff;
+      --color-similarity: #ffe4e6;
+      
+      /* Topic Icon Colors */
+      --icon-algebra: #d97706;
+      --icon-congruence: #15803d;
+      --icon-geometry: #1d4ed8;
+      --icon-ratio: #7e22ce;
+      --icon-similarity: #be123c;
+    }
+
+    body {
+      font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+      background-color: var(--bg);
+      color: var(--text-main);
+      margin: 0;
+      padding: 40px 20px;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    /* Header Section */
+    .app-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .app-header h1 {
+      font-size: 2.75rem;
+      font-weight: 800;
+      color: var(--accent);
+      margin: 0;
+      letter-spacing: -0.5px;
+    }
+
+    .app-header p {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      margin-top: 8px;
+      font-weight: 600;
+    }
+
+    /* Welcome Section */
+    .welcome-box {
+      background: white;
+      padding: 24px 32px;
+      border-radius: 24px;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+      margin-bottom: 40px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      border: 2px solid transparent;
+      transition: border-color 0.3s;
+    }
+
+    .welcome-box:focus-within {
+      border-color: #c7d2fe;
+    }
+
+    .user-input-group {
+      display: flex;
+      gap: 12px;
+      width: 100%;
+      max-width: 350px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 12px 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      outline: none;
+      font-family: 'Nunito', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .save-btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      transition: all 0.2s;
+    }
+
+    .save-btn:hover {
+      background: var(--accent-hover);
+      transform: translateY(-2px);
+    }
+
+    .save-btn:active {
+      transform: translateY(0);
+    }
+
+    /* Grid & Cards */
+    .section-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      margin: 32px 0 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--text-main);
+    }
+
+    .section-title::after {
+      content: "";
+      flex: 1;
+      height: 3px;
+      background: #e2e8f0;
+      border-radius: 3px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 24px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 24px;
+      padding: 30px 24px;
+      text-align: center;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 2px solid transparent;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .card:hover {
+      transform: translateY(-8px);
+      border-color: var(--accent);
+      box-shadow: 0 20px 25px -5px rgba(99, 102, 241, 0.1);
+    }
+
+    .icon-circle {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      transition: transform 0.3s;
+    }
+
+    .card:hover .icon-circle {
+      transform: scale(1.1) rotate(5deg);
+    }
+
+    .card h2 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      margin: 0 0 20px;
+    }
+
+    .play-link {
+      margin-top: auto;
+      text-decoration: none;
+      color: var(--accent);
+      font-weight: 800;
+      font-size: 1rem;
+      padding: 10px 24px;
+      border-radius: 14px;
+      background: #f1f5f9;
+      transition: all 0.2s;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .play-link:hover {
+      background: var(--accent);
+      color: white;
+    }
+
+    /* Specific Colors */
+    .algebra { background-color: var(--color-algebra); color: var(--icon-algebra); }
+    .congruence { background-color: var(--color-congruence); color: var(--icon-congruence); }
+    .geometry { background-color: var(--color-geometry); color: var(--icon-geometry); }
+    .ratio { background-color: var(--color-ratio); color: var(--icon-ratio); }
+    .similarity { background-color: var(--color-similarity); color: var(--icon-similarity); }
+
+    footer {
+      text-align: center;
+      margin-top: 60px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    @media (max-width: 600px) {
+      .welcome-box { 
+        text-align: center; 
+        justify-content: center; 
+        padding: 24px 20px;
+      }
+      .user-input-group {
+        flex-direction: column;
+      }
+      .app-header h1 {
+        font-size: 2.2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Main Title -->
+  <header class="app-header">
+    <h1>S2 Mathematics Revision Tool</h1>
+    <p>Master your math skills with interactive quizzes!</p>
+  </header>
+
+  <!-- Top Bar / Welcome -->
+  <div class="welcome-box">
+    <div>
+      <h2 id="greeting" style="margin:0; font-size: 1.6rem; font-weight: 800;">Welcome back!</h2>
+      <p style="margin:4px 0 0; color: var(--text-muted); font-weight: 600;">Let's get started on your revision.</p>
+    </div>
+    <div class="user-input-group">
+      <input type="text" id="studentName" placeholder="Enter your name">
+      <button class="save-btn" onclick="saveName()">Save Name</button>
+    </div>
+  </div>
+
+  <!-- GLOBAL PROGRESS -->
+  <div class="section-title">Overall Progress</div>
+  <div style="background:white;padding:18px;border-radius:16px;box-shadow:0 6px 18px -6px rgba(0,0,0,0.08);margin-bottom:24px;display:flex;flex-direction:column;gap:10px;align-items:center">
+    <div style="width:100%;max-width:800px;display:flex;justify-content:space-between;align-items:center">
+      <div style="font-weight:800;color:var(--text-main)">Total Correct Answers</div>
+      <div style="font-weight:800;color:var(--accent)" id="global-count">0</div>
+    </div>
+    <div style="width:100%;max-width:800px;background:#eef2ff;border-radius:999px;height:16px;overflow:hidden">
+      <div id="global-bar" style="height:16px;width:0%;background:linear-gradient(90deg,var(--accent),#7c3aed)"></div>
+    </div>
+    <div style="width:100%;max-width:800px;display:flex;justify-content:flex-end;color:var(--text-muted);font-weight:700;font-size:0.9rem">Goal: <span id="global-goal">200</span> correct answers</div>
+  </div>
+
+  <!-- Term 2 -->
+  <div class="section-title">Term 2 Topics</div>
+  <div class="grid">
+    <div class="card">
+      <div class="icon-circle algebra">
+        <!-- Variable/Calculator icon for Algebra -->
+        <i data-lucide="calculator" stroke-width="2.5" width="36" height="36"></i>
+      </div>
+      <h2>Algebra</h2>
+
+      <div style="width:100%;margin:12px 0 0;text-align:left">
+        <div style="display:flex;justify-content:space-between;align-items:center;font-weight:700;color:var(--text-muted);font-size:0.95rem;margin-bottom:6px">
+          <span>Progress</span>
+          <span id="progress-algebra">0</span>
+        </div>
+        <div style="background:#eef2ff;border-radius:999px;height:12px;overflow:hidden">
+          <div id="bar-algebra" style="height:12px;width:0%;background:linear-gradient(90deg,var(--accent),#7c3aed)"></div>
+        </div>
+        <div class="tiers" style="display:flex;gap:8px;margin-top:10px;align-items:flex-end">
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:800;color:#b45309;margin-bottom:4px">Bronze</div>
+            <div style="background:#fef3c7;border-radius:999px;height:10px;overflow:hidden">
+              <div id="bronze-fill-algebra" style="height:10px;width:0%;background:#d97706"></div>
+            </div>
+            <div id="bronze-text-algebra" style="font-size:12px;color:var(--text-muted);font-weight:700;margin-top:4px">0/30</div>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:800;color:#6b7280;margin-bottom:4px">Silver</div>
+            <div style="background:#f3f4f6;border-radius:999px;height:10px;overflow:hidden">
+              <div id="silver-fill-algebra" style="height:10px;width:0%;background:#374151"></div>
+            </div>
+            <div id="silver-text-algebra" style="font-size:12px;color:var(--text-muted);font-weight:700;margin-top:4px">0/80</div>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:800;color:#b45309;margin-bottom:4px">Gold</div>
+            <div style="background:#fff7ed;border-radius:999px;height:10px;overflow:hidden">
+              <div id="gold-fill-algebra" style="height:10px;width:0%;background:#b45309"></div>
+            </div>
+            <div id="gold-text-algebra" style="font-size:12px;color:var(--text-muted);font-weight:700;margin-top:4px">0/200</div>
+          </div>
+        </div>
+         </div>
+
+      <a href="Algebra.html" class="play-link" style="margin-top:14px">Start Quiz →</a>
+    </div>
+
+    <div class="card">
+      <div class="icon-circle congruence">
+        <!-- Shapes representing Congruence -->
+        <i data-lucide="shapes" stroke-width="2.5" width="36" height="36"></i>
+      </div>
+      <h2>Congruence</h2>
+
+      <div style="width:100%;margin:12px 0 0;text-align:left">
+        <div style="display:flex;justify-content:space-between;align-items:center;font-weight:700;color:var(--text-muted);font-size:0.95rem;margin-bottom:6px">
+          <span>Progress</span>
+          <span id="progress-congruence">0</span>
+        </div>
+        <div style="background:#ecfdf5;border-radius:999px;height:12px;overflow:hidden">
+          <div id="bar-congruence" style="height:12px;width:0%;background:linear-gradient(90deg,#10b981,#059669)"></div>
+        </div>
+        <div class="tiers" style="display:flex;gap:8px;margin-top:10px;align-items:flex-end">
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:800;color:#15803d;margin-bottom:4px">Bronze</div>
+            <div style="background:#dcfce7;border-radius:999px;height:10px;overflow:hidden">
+              <div id="bronze-fill-congruence" style="height:10px;width:0%;background:#15803d"></div>
+            </div>
+            <div id="bronze-text-congruence" style="font-size:12px;color:var(--text-muted);font-weight:700;margin-top:4px">0/30</div>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:800;color:#6b7280;margin-bottom:4px">Silver</div>
+            <div style="background:#f3f4f6;border-radius:999px;height:10px;overflow:hidden">
+              <div id="silver-fill-congruence" style="height:10px;width:0%;background:#374151"></div>
+            </div>
+            <div id="silver-text-congruence" style="font-size:12px;color:var(--text-muted);font-weight:700;margin-top:4px">0/80</div>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:800;color:#b45309;margin-bottom:4px">Gold</div>
+            <div style="background:#fff7ed;border-radius:999px;height:10px;overflow:hidden">
+              <div id="gold-fill-congruence" style="height:10px;width:0%;background:#b45309"></div>
+            </div>
+            <div id="gold-text-congruence" style="font-size:12px;color:var(--text-muted);font-weight:700;margin-top:4px">0/200</div>
+          </div>
+        </div>
+         </div>
+
+      <a href="Congruence.html" class="play-link" style="margin-top:14px">Start Quiz →</a>
+    </div>
+
+    <div class="card">
+      <div class="icon-circle geometry">
+        <!-- Ruler representing Geometry -->
+        <i data-lucide="ruler" stroke-width="2.5" width="36" height="36"></i>
+      </div>
+      <h2>Geometry</h2>
+
+      <div style="width:100%;margin:12px 0 0;text-align:left">
+        <div style="display:flex;justify-content:space-between;align-items:center;font-weight:700;color:var(--text-muted);font-size:0.95rem;margin-bottom:6px">
+          <span>Progress</span>
+          <span id="progress-geometry">0</span>
+        </div>
+        <div style="background:#eff6ff;border-radius:999px;height:12px;overflow:hidden">
+          <div id="bar-geometry" style="height:12px;width:0%;background:linear-gradient(90deg,#3b82f6,#1e40af)"></div>
+        </div>
+        <div class="tiers" style="display:flex;gap:8px;margin-top:10px;align-items:flex-end">
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:800;color:#1d4ed8;margin-bottom:4px">Bronze</div>
+            <div style="background:#dbeafe;border-radius:999px;height:10px;overflow:hidden">
+              <div id="bronze-fill-geometry" style="height:10px;width:0%;background:#1d4ed8"></div>
+            </div>
+            <div id="bronze-text-geometry" style="font-size:12px;color:var(--text-muted);font-weight:700;margin-top:4px">0/30</div>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:800;color:#6b7280;margin-bottom:4px">Silver</div>
+            <div style="background:#f3f4f6;border-radius:999px;height:10px;overflow:hidden">
+              <div id="silver-fill-geometry" style="height:10px;width:0%;background:#374151"></div>
+            </div>
+            <div id="silver-text-geometry" style="font-size:12px;color:var(--text-muted);font-weight:700;margin-top:4px">0/80</div>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:800;color:#b45309;margin-bottom:4px">Gold</div>
+            <div style="background:#fff7ed;border-radius:999px;height:10px;overflow:hidden">
+              <div id="gold-fill-geometry" style="height:10px;width:0%;background:#b45309"></div>
+            </div>
+            <div id="gold-text-geometry" style="font-size:12px;color:var(--text-muted);font-weight:700;margin-top:4px">0/200</div>
+          </div>
+        </div>
+         </div>
+
+      <a href="Geometry.html" class="play-link" style="margin-top:14px">Start Quiz →</a>
+    </div>
+
+    <div class="card">
+      <div class="icon-circle ratio">
+        <!-- Pie chart representing Ratios/Fractions -->
+        <i data-lucide="pie-chart" stroke-width="2.5" width="36" height="36"></i>
+      </div>
+      <h2>Ratio</h2>
+
+      <div style="width:100%;margin:12px 0 0;text-align:left">
+        <div style="display:flex;justify-content:space-between;align-items:center;font-weight:700;color:var(--text-muted);font-size:0.95rem;margin-bottom:6px">
+          <span>Progress</span>
+          <span id="progress-ratio">0</span>
+        </div>
+        <div style="background:#f8f0ff;border-radius:999px;height:12px;overflow:hidden">
+          <div id="bar-ratio" style="height:12px;width:0%;background:linear-gradient(90deg,#a78bfa,#7c3aed)"></div>
+        </div>
+        <div class="tiers" style="display:flex;gap:8px;margin-top:10px;align-items:flex-end">
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:800;color:#7e22ce;margin-bottom:4px">Bronze</div>
+            <div style="background:#f3e8ff;border-radius:999px;height:10px;overflow:hidden">
+              <div id="bronze-fill-ratio" style="height:10px;width:0%;background:#7e22ce"></div>
+            </div>
+            <div id="bronze-text-ratio" style="font-size:12px;color:var(--text-muted);font-weight:700;margin-top:4px">0/30</div>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:800;color:#6b7280;margin-bottom:4px">Silver</div>
+            <div style="background:#f3f4f6;border-radius:999px;height:10px;overflow:hidden">
+              <div id="silver-fill-ratio" style="height:10px;width:0%;background:#374151"></div>
+            </div>
+            <div id="silver-text-ratio" style="font-size:12px;color:var(--text-muted);font-weight:700;margin-top:4px">0/80</div>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:800;color:#b45309;margin-bottom:4px">Gold</div>
+            <div style="background:#fff7ed;border-radius:999px;height:10px;overflow:hidden">
+              <div id="gold-fill-ratio" style="height:10px;width:0%;background:#b45309"></div>
+            </div>
+            <div id="gold-text-ratio" style="font-size:12px;color:var(--text-muted);font-weight:700;margin-top:4px">0/200</div>
+          </div>
+        </div>
+         </div>
+
+      <a href="Ratio.html" class="play-link" style="margin-top:14px">Start Quiz →</a>
+    </div>
+  </div>
+
+  <!-- Term 3 -->
+  <div class="section-title">Term 3 Topics</div>
+  <div class="grid">
+    <div class="card" style="max-width: 250px;">
+      <div class="icon-circle similarity">
+        <!-- Maximize/Scaling representing Similarity -->
+        <i data-lucide="maximize" stroke-width="2.5" width="36" height="36"></i>
+      </div>
+      <h2>Similarity</h2>
+
+      <div style="width:100%;margin:12px 0 0;text-align:left">
+        <div style="display:flex;justify-content:space-between;align-items:center;font-weight:700;color:var(--text-muted);font-size:0.95rem;margin-bottom:6px">
+          <span>Progress</span>
+          <span id="progress-similarity">0</span>
+        </div>
+        <div style="background:#fff1f2;border-radius:999px;height:12px;overflow:hidden">
+          <div id="bar-similarity" style="height:12px;width:0%;background:linear-gradient(90deg,#fb7185,#be123c)"></div>
+        </div>
+        <div class="tiers" style="display:flex;gap:8px;margin-top:10px;align-items:flex-end">
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:800;color:#be123c;margin-bottom:4px">Bronze</div>
+            <div style="background:#ffe4e6;border-radius:999px;height:10px;overflow:hidden">
+              <div id="bronze-fill-similarity" style="height:10px;width:0%;background:#be123c"></div>
+            </div>
+            <div id="bronze-text-similarity" style="font-size:12px;color:var(--text-muted);font-weight:700;margin-top:4px">0/30</div>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:800;color:#6b7280;margin-bottom:4px">Silver</div>
+            <div style="background:#f3f4f6;border-radius:999px;height:10px;overflow:hidden">
+              <div id="silver-fill-similarity" style="height:10px;width:0%;background:#374151"></div>
+            </div>
+            <div id="silver-text-similarity" style="font-size:12px;color:var(--text-muted);font-weight:700;margin-top:4px">0/80</div>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:800;color:#b45309;margin-bottom:4px">Gold</div>
+            <div style="background:#fff7ed;border-radius:999px;height:10px;overflow:hidden">
+              <div id="gold-fill-similarity" style="height:10px;width:0%;background:#b45309"></div>
+            </div>
+            <div id="gold-text-similarity" style="font-size:12px;color:var(--text-muted);font-weight:700;margin-top:4px">0/200</div>
+          </div>
+        </div>
+         </div>
+
+      <a href="Similarity.html" class="play-link" style="margin-top:14px">Start Quiz →</a>
+    </div>
+  </div>
+
+  <footer>
+    &copy; 2024 Math Quiz Hub • Track your progress locally
+  </footer>
+</div>
+
+<script>
+  // Initialize Lucide Icons
+  lucide.createIcons();
+
+  // Load name on startup
+  window.onload = function() {
+    const savedName = localStorage.getItem('mathQuizStudentName');
+    if (savedName) {
+      updateUI(savedName);
+      document.getElementById('studentName').value = savedName;
+    }
+
+    // Load progress and goals for all topics
+    loadAllProgress();
+  };
+
+  const TOPICS = ['algebra','congruence','geometry','ratio','similarity'];
+  const GLOBAL_GOAL = 200; // fixed overall goal (total correct answers)
+  const TIER_TARGETS = { bronze: 30, silver: 80, gold: 200 };
+  const TOPIC_COLORS = {
+    algebra: '#d97706',
+    congruence: '#15803d',
+    geometry: '#1d4ed8',
+    ratio: '#7e22ce',
+    similarity: '#be123c'
+  };
+
+  function storageKeyScore(topic){ return `mq_score_${topic}`; }
+
+  function loadAllProgress(){
+    TOPICS.forEach(t => {
+      const raw = localStorage.getItem(storageKeyScore(t));
+      const val = raw ? parseInt(raw,10) : 0;
+      document.getElementById(`progress-${t}`).textContent = val;
+      updateBar(t, val);
+      updateTiers(t, val);
+    });
+    updateGlobalProgress();
+  }
+
+  function updateTiers(topic, value){
+    const bTarget = TIER_TARGETS.bronze;
+    const sTarget = TIER_TARGETS.silver;
+    const gTarget = TIER_TARGETS.gold;
+
+    const bronzePct = Math.min(100, Math.round((Math.min(value, bTarget) / bTarget) * 100));
+    const silverPct = Math.min(100, Math.round((Math.min(value, sTarget) / sTarget) * 100));
+    const goldPct = Math.min(100, Math.round((Math.min(value, gTarget) / gTarget) * 100));
+
+    const bronzeFill = document.getElementById(`bronze-fill-${topic}`);
+    const silverFill = document.getElementById(`silver-fill-${topic}`);
+    const goldFill = document.getElementById(`gold-fill-${topic}`);
+
+    if (bronzeFill) bronzeFill.style.width = bronzePct + '%';
+    if (silverFill) silverFill.style.width = silverPct + '%';
+    if (goldFill) goldFill.style.width = goldPct + '%';
+
+    const bronzeText = document.getElementById(`bronze-text-${topic}`);
+    const silverText = document.getElementById(`silver-text-${topic}`);
+    const goldText = document.getElementById(`gold-text-${topic}`);
+    if (bronzeText) bronzeText.textContent = `${Math.min(value, bTarget)}/${bTarget}`;
+    if (silverText) silverText.textContent = `${Math.min(value, sTarget)}/${sTarget}`;
+    if (goldText) goldText.textContent = `${Math.min(value, gTarget)}/${gTarget}`;
+  }
+
+  function updateBar(topic, value){
+    const pct = GLOBAL_GOAL > 0 ? Math.min(100, Math.round((value / GLOBAL_GOAL) * 100)) : 0;
+    const bar = document.getElementById(`bar-${topic}`);
+    if(bar) bar.style.width = pct + '%';
+    // also refresh tier visuals
+    updateTiers(topic, value);
+  }
+
+   // Update the global progress bar which is the sum of all topic scores
+   function updateGlobalProgress(){
+     let total = 0;
+     TOPICS.forEach(t => { total += parseInt(localStorage.getItem(storageKeyScore(t)) || '0', 10); });
+     document.getElementById('global-count').textContent = total;
+     const pct = GLOBAL_GOAL > 0 ? Math.min(100, Math.round((total / GLOBAL_GOAL) * 100)) : 0;
+     const gbar = document.getElementById('global-bar');
+     if (gbar) {
+       // build segmented bar showing proportions per topic
+       if (total === 0) {
+         gbar.innerHTML = '';
+         gbar.style.width = pct + '%';
+         gbar.style.background = 'linear-gradient(90deg,var(--accent),#7c3aed)';
+       } else {
+         gbar.innerHTML = '';
+         TOPICS.forEach(t => {
+           const count = parseInt(localStorage.getItem(storageKeyScore(t)) || '0', 10);
+           const segPct = Math.round((count / total) * 100);
+           const seg = document.createElement('div');
+           seg.style.display = 'inline-block';
+           seg.style.height = '100%';
+           seg.style.width = (segPct) + '%';
+           seg.style.background = TOPIC_COLORS[t] || '#ccc';
+           gbar.appendChild(seg);
+         });
+         gbar.style.width = pct + '%';
+       }
+     }
+     // update displayed global goal value
+     const ggoal = document.getElementById('global-goal'); if (ggoal) ggoal.textContent = GLOBAL_GOAL;
+   }
+
+    // Called by quiz pages to increment progress for a topic
+    function incrementProgress(topic, amount = 1){
+      const key = storageKeyScore(topic.toLowerCase());
+      const curr = parseInt(localStorage.getItem(key) || '0',10);
+      const next = curr + amount;
+      localStorage.setItem(key, String(next));
+
+      const el = document.getElementById(`progress-${topic.toLowerCase()}`);
+      if(el) el.textContent = next;
+
+      updateBar(topic.toLowerCase(), next);
+      updateGlobalProgress();
+    }
+
+    // Expose a global function so other quiz pages can call parent.incrementProgress when opened in same tab
+    window.__mq_increment = function(topic, amount){ incrementProgress(topic, amount); };
+
+    // Listen for storage changes in other tabs/windows so the dashboard updates live
+    window.addEventListener('storage', function(e){
+      try {
+        if (e.key && e.key.indexOf('mq_score_') === 0) {
+          // small timeout to ensure the new value is settled
+          setTimeout(loadAllProgress, 50);
+        }
+      } catch(err) { /* ignore */ }
+    });
+</script>
+
+</body>
+</html>
