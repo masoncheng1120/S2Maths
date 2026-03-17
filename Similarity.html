@@ -81,6 +81,17 @@
                 <div class="flex items-center text-blue-600 font-bold text-sm group-hover:translate-x-2 transition-transform">
                     Start <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
                 </div>
+
+                <!-- mini progress under this quiz -->
+                <div class="mt-4 text-sm font-semibold text-slate-600">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                        <div>Progress</div>
+                        <div id="sim-prog-property-count" style="font-weight:800">0</div>
+                    </div>
+                    <div style="height:8px;background:#eef2ff;border-radius:999px;overflow:hidden">
+                        <div id="sim-prog-property-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#fb7185,#be123c)"></div>
+                    </div>
+                </div>
             </button>
 
             <!-- Proving Card -->
@@ -96,6 +107,17 @@
                 <div class="flex items-center text-purple-600 font-bold text-sm group-hover:translate-x-2 transition-transform">
                     Start <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
                 </div>
+
+                <!-- mini progress under this quiz -->
+                <div class="mt-4 text-sm font-semibold text-slate-600">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                        <div>Progress</div>
+                        <div id="sim-prog-proving-count" style="font-weight:800">0</div>
+                    </div>
+                    <div style="height:8px;background:#f5f3ff;border-radius:999px;overflow:hidden">
+                        <div id="sim-prog-proving-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#c084fc,#7c3aed)"></div>
+                    </div>
+                </div>
             </button>
 
             <!-- Advanced Card -->
@@ -110,6 +132,17 @@
                 <p class="text-slate-500 text-sm mb-4 leading-relaxed">Complex figures with nested triangles, common angles, and parallel lines proofs.</p>
                 <div class="flex items-center text-rose-600 font-bold text-sm group-hover:translate-x-2 transition-transform">
                     Start <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                </div>
+
+                <!-- mini progress under this quiz -->
+                <div class="mt-4 text-sm font-semibold text-slate-600">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                        <div>Progress</div>
+                        <div id="sim-prog-advanced-count" style="font-weight:800">0</div>
+                    </div>
+                    <div style="height:8px;background:#fff1f2;border-radius:999px;overflow:hidden">
+                        <div id="sim-prog-advanced-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#fb7185,#be123c)"></div>
+                    </div>
                 </div>
             </button>
         </div>
@@ -133,6 +166,14 @@
                 <div class="bg-black/20 px-4 py-2 rounded-xl text-center">
                     <div class="text-[10px] uppercase tracking-wider opacity-75 font-bold">Score</div>
                     <div class="text-xl font-mono font-bold leading-none"><span id="score">0</span></div>
+                </div>
+                <!-- Per-topic progress (Similarity) -->
+                <div id="simProgressContainer" style="min-width:170px;text-align:right">
+                    <div style="font-size:10px;opacity:0.85;font-weight:800;letter-spacing:0.6px">Topic Progress</div>
+                    <div style="font-size:12px;font-weight:800">Similarity: <span id="sim-progress-count">0</span></div>
+                    <div style="width:140px;height:8px;background:rgba(255,255,255,0.18);border-radius:999px;overflow:hidden;margin-top:6px">
+                        <div id="sim-progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#fb7185,#be123c)"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -928,16 +969,30 @@
         if (isCorrect) {
             state.score++;
             document.getElementById('score').textContent = state.score;
-            // Report progress to index dashboard if available
-            if (window && typeof window.__mq_increment === 'function') {
-                window.__mq_increment('similarity', 1);
-            } else {
-                try {
-                    const key = 'mq_score_similarity';
-                    const curr = parseInt(localStorage.getItem(key) || '0', 10);
-                    localStorage.setItem(key, String(curr + 1));
-                } catch (e) { /* ignore storage errors */ }
-            }
+            // Increment per-subtopic localStorage and update aggregated similarity total
+            try {
+                const subKey = `mq_score_similarity_${state.currentTopic}`; // property, proving, advanced
+                const subCurr = parseInt(localStorage.getItem(subKey) || '0', 10);
+                localStorage.setItem(subKey, String(subCurr + 1));
+
+                // recompute aggregate total from subkeys to keep things consistent
+                const subs = ['property','proving','advanced'];
+                let total = 0;
+                subs.forEach(s => { total += parseInt(localStorage.getItem(`mq_score_similarity_${s}`) || '0', 10); });
+                localStorage.setItem('mq_score_similarity', String(total));
+
+                // If index dashboard is open, notify it to increment (it will also re-read localStorage via storage event)
+                if (window && typeof window.__mq_increment === 'function') {
+                    // call once so index UI updates immediately in same tab
+                    window.__mq_increment('similarity', 1);
+                    // ensure stored aggregate matches recomputed total
+                    localStorage.setItem('mq_score_similarity', String(total));
+                }
+            } catch (e) { /* ignore storage errors */ }
+            // Refresh local progress display in this quiz immediately
+            try { if (typeof updateSimilarityProgress === 'function') updateSimilarityProgress(); } catch(e){}
+            // Also send progress to Google Sheets web app if URL provided
+            try { if (typeof sendSimilarityProgress === 'function') sendSimilarityProgress(); } catch(e){}
         }
 
         state.isAnswered = true;
@@ -976,7 +1031,76 @@
         renderQuestion();
     }
 
-    window.onload = loadName;
+    // --- Similarity progress helpers ---
+    function getSimilarityProgress(){
+        // prefer summing per-subtopic keys if present
+        const subs = ['property','proving','advanced'];
+        let sum = 0; let seenAny = false;
+        subs.forEach(s => {
+            const v = parseInt(localStorage.getItem(`mq_score_similarity_${s}`) || '0', 10);
+            if (v) seenAny = true;
+            sum += v;
+        });
+        if (seenAny) return sum;
+        return parseInt(localStorage.getItem('mq_score_similarity') || '0', 10);
+    }
+    
+    function updateSimilarityProgress(){
+        // get per-subtopic values
+        const subs = ['property','proving','advanced'];
+        let total = 0;
+        subs.forEach(s => {
+            const val = parseInt(localStorage.getItem(`mq_score_similarity_${s}`) || '0', 10);
+            total += val;
+            const cnt = document.getElementById(`sim-prog-${s}-count`);
+            const b = document.getElementById(`sim-prog-${s}-bar`);
+            if (cnt) cnt.textContent = val;
+            if (b) b.style.width = (Math.min(100, Math.round((val / 200) * 100))) + '%';
+        });
+
+        // header display uses aggregate total
+        const headerEl = document.getElementById('sim-progress-count'); if (headerEl) headerEl.textContent = total;
+        const headerBar = document.getElementById('sim-progress-bar'); if (headerBar){
+            const pct = Math.min(100, Math.round((total / 200) * 100));
+            headerBar.style.width = pct + '%';
+        }
+    }
+    
+    // --- Send progress to Google Sheets Web App ---
+    // Replace the URL below with the Web App URL you get after deploying the Apps Script (doGet handler) in your Google Sheet.
+    const SIM_SHEET_WEBAPP_URL = 'PASTE_YOUR_WEBAPP_URL_HERE';
+    
+    function sendSimilarityProgress(){
+        if (!SIM_SHEET_WEBAPP_URL || SIM_SHEET_WEBAPP_URL.indexOf('PASTE_YOUR') === 0) return; // no URL configured
+        try {
+            const name = (state.studentName || document.getElementById('usernameInput')?.value || 'Student').trim() || 'Student';
+            const sub = state.currentTopic || 'property';
+            const subs = ['property','proving','advanced'];
+            const subVal = parseInt(localStorage.getItem(`mq_score_similarity_${sub}`) || '0', 10);
+            let total = 0; subs.forEach(s => { total += parseInt(localStorage.getItem(`mq_score_similarity_${s}`) || '0', 10); });
+            const payload = {
+                name: name,
+                subtopic: sub,
+                subcount: String(subVal),
+                total: String(total),
+                question: String(state.questionCount || 0),
+                score: String(state.score || 0),
+                ts: (new Date()).toISOString()
+            };
+            // Build query string
+            const params = Object.keys(payload).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(payload[k])).join('&');
+            // Use an Image GET to avoid CORS and ensure the request is sent
+            const img = new Image();
+            img.src = SIM_SHEET_WEBAPP_URL + (SIM_SHEET_WEBAPP_URL.indexOf('?') === -1 ? '?' : '&') + params + '&_=' + Date.now();
+            // Also attempt a non-blocking fetch (no-cors) as a best-effort
+            try { fetch(SIM_SHEET_WEBAPP_URL + (SIM_SHEET_WEBAPP_URL.indexOf('?') === -1 ? '?' : '&') + params, { method: 'GET', mode: 'no-cors' }).catch(()=>{}); } catch(e){}
+        } catch (e) { /* ignore */ }
+    }
+    
+    // Listen for storage changes (other tabs) so the quiz page updates live
+    window.addEventListener('storage', function(e){ if (e.key && (e.key.indexOf('mq_score_similarity') === 0)) { try{ updateSimilarityProgress(); }catch(_){} } });
+
+    window.onload = function(){ loadName(); try{ updateSimilarityProgress(); }catch(_){} };
 
 </script>
 </body>
