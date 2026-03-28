@@ -28,6 +28,7 @@
       --color-geometry: #dbeafe;
       --color-ratio: #f3e8ff;
       --color-similarity: #ffe4e6;
+      --color-pythagoras: #ecfeff;
       
       /* Topic Icon Colors */
       --icon-algebra: #d97706;
@@ -35,6 +36,7 @@
       --icon-geometry: #1d4ed8;
       --icon-ratio: #7e22ce;
       --icon-similarity: #be123c;
+      --icon-pythagoras: #0e7490;
     }
 
     body {
@@ -228,6 +230,7 @@
     .geometry { background-color: var(--color-geometry); color: var(--icon-geometry); }
     .ratio { background-color: var(--color-ratio); color: var(--icon-ratio); }
     .similarity { background-color: var(--color-similarity); color: var(--icon-similarity); }
+    .pythagoras { background-color: var(--color-pythagoras); color: var(--icon-pythagoras); }
 
     footer {
       text-align: center;
@@ -470,7 +473,12 @@
         <!-- Maximize/Scaling representing Similarity -->
         <i data-lucide="maximize" stroke-width="2.5" width="36" height="36"></i>
       </div>
-      <h2>Similarity</h2>
+      <h2 style="display:inline-block;margin-right:8px">Similarity</h2>
+      <div style="display:inline-block;vertical-align:middle">
+        <button id="sim-ranking-btn" title="View Similarity Leaderboard" style="background:transparent;border:none;cursor:pointer;padding:6px;border-radius:8px">
+          <i data-lucide="award" stroke-width="2.5" width="20" height="20" style="color:var(--icon-similarity)"></i>
+        </button>
+      </div>
 
       <div style="width:100%;margin:12px 0 0;text-align:left">
         <div style="display:flex;justify-content:space-between;align-items:center;font-weight:700;color:var(--text-muted);font-size:0.95rem;margin-bottom:6px">
@@ -507,6 +515,56 @@
 
       <a href="Similarity.html" class="play-link" style="margin-top:14px">Start Quiz →</a>
     </div>
+
+    <div class="card" style="max-width: 250px;">
+      <div class="icon-circle pythagoras">
+        <i data-lucide="triangle-right" stroke-width="2.5" width="36" height="36"></i>
+      </div>
+      <h2>Pythagoras theorem</h2>
+
+      <div style="width:100%;margin:12px 0 0;text-align:left">
+        <div style="display:flex;justify-content:space-between;align-items:center;font-weight:700;color:var(--text-muted);font-size:0.95rem;margin-bottom:6px">
+          <span>Progress</span>
+          <span id="progress-pythagoras">0</span>
+        </div>
+        <div style="background:#ecfeff;border-radius:999px;height:12px;overflow:hidden">
+          <div id="bar-pythagoras" style="height:12px;width:0%;background:linear-gradient(90deg,#22d3ee,#0e7490)"></div>
+        </div>
+        <div class="tiers" style="display:flex;gap:8px;margin-top:10px;align-items:flex-end">
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:800;color:#0e7490;margin-bottom:4px">Bronze</div>
+            <div style="background:#cffafe;border-radius:999px;height:10px;overflow:hidden">
+              <div id="bronze-fill-pythagoras" style="height:10px;width:0%;background:#0e7490"></div>
+            </div>
+            <div id="bronze-text-pythagoras" style="font-size:12px;color:var(--text-muted);font-weight:700;margin-top:4px">0/30</div>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:800;color:#6b7280;margin-bottom:4px">Silver</div>
+            <div style="background:#f3f4f6;border-radius:999px;height:10px;overflow:hidden">
+              <div id="silver-fill-pythagoras" style="height:10px;width:0%;background:#374151"></div>
+            </div>
+            <div id="silver-text-pythagoras" style="font-size:12px;color:var(--text-muted);font-weight:700;margin-top:4px">0/80</div>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:800;color:#b45309;margin-bottom:4px">Gold</div>
+            <div style="background:#fff7ed;border-radius:999px;height:10px;overflow:hidden">
+              <div id="gold-fill-pythagoras" style="height:10px;width:0%;background:#b45309"></div>
+            </div>
+            <div id="gold-text-pythagoras" style="font-size:12px;color:var(--text-muted);font-weight:700;margin-top:4px">0/200</div>
+          </div>
+        </div>
+      </div>
+
+      <a href="Pythagoras.html" class="play-link" style="margin-top:14px">Start Quiz →</a>
+    </div>
+  </div>
+
+  <!-- Leaderboard Modal (hidden by default) -->
+  <div id="leaderboardModal" style="display:none;position:fixed;z-index:9999;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.5);align-items:center;justify-content:center"> 
+    <div style="background:white;border-radius:12px;max-width:520px;width:90%;margin:auto;padding:18px;position:relative"> 
+      <button onclick="closeLeaderboard()" style="position:absolute;right:12px;top:12px;background:none;border:none;font-weight:700;cursor:pointer">✕</button>
+      <div id="leaderboardList" style="max-height:60vh;overflow:auto;padding-top:8px"></div>
+    </div>
   </div>
 
   <footer>
@@ -515,6 +573,58 @@
 </div>
 
 <script>
+  // --- Leaderboard fetch for Similarity ---
+  // Replace with your Web App URL (deploy Apps Script that returns JSON leaderboard)
+  const SIM_SHEET_LEADERBOARD_URL = 'https://script.google.com/macros/s/AKfycbw6LKlfduKSEx2ckaNEi1Q7Z-9ieJN7AUZ-hpyXzyFdTLhR21jcggMnxxEEJg1ghtpS/exec';
+
+  // escape helper for rendering
+  function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]; }); }
+
+  function openSimilarityLeaderboard(){
+    const modal = document.getElementById('leaderboardModal');
+    const list = document.getElementById('leaderboardList');
+    if(!modal || !list) return;
+    modal.style.display = 'flex';
+    list.innerHTML = '<div style="padding:20px">Loading leaderboard…</div>';
+
+    if (!SIM_SHEET_LEADERBOARD_URL || SIM_SHEET_LEADERBOARD_URL.indexOf('PASTE_YOUR') === 0) {
+      list.innerHTML = '<div style="padding:20px;color:#b45309">Leaderboard URL not configured.</div>';
+      return;
+    }
+
+    // Fetch leaderboard JSON from your Apps Script web app
+    fetch(SIM_SHEET_LEADERBOARD_URL + (SIM_SHEET_LEADERBOARD_URL.indexOf('?') === -1 ? '?' : '&') + 'action=leaderboard&topic=similarity', { method: 'GET', mode: 'cors' })
+      .then(r => r.json())
+      .then(data => {
+        if (!Array.isArray(data) || data.length === 0) {
+          list.innerHTML = '<div style="padding:20px">No leaderboard data available.</div>';
+          return;
+        }
+
+        // sort descending by total
+        data.sort((a,b) => (parseInt(b.total||0,10) - parseInt(a.total||0,10)));
+
+        let html = '<div style="padding:12px 6px"><h3 style="margin:0 0 8px">Similarity Leaderboard</h3>' +
+                   '<div style="font-weight:700;color:var(--text-muted);font-size:0.9rem;margin-bottom:8px">Name — Questions</div>';
+        html += '<div style="border-top:1px solid #f1f5f9">';
+        data.forEach(row => {
+          const name = escapeHtml(row.name || 'Anonymous');
+          const total = escapeHtml(row.total || '0');
+          html += `<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #fbfbfc"><div>${name}</div><div style="font-weight:800">${total}</div></div>`;
+        });
+        html += '</div></div>';
+        list.innerHTML = html;
+      }).catch(err => {
+        console.error('Leaderboard fetch error', err);
+        list.innerHTML = '<div style="padding:20px;color:#b45309">Failed to load leaderboard.</div>';
+      });
+  }
+
+  function closeLeaderboard(){ const modal = document.getElementById('leaderboardModal'); if(modal) modal.style.display = 'none'; }
+
+  // wire up the button after DOM is ready
+  try { document.addEventListener('DOMContentLoaded', function(){ const btn = document.getElementById('sim-ranking-btn'); if(btn) btn.addEventListener('click', openSimilarityLeaderboard); }); } catch(e){}
+
   // Initialize Lucide Icons
   lucide.createIcons();
 
@@ -530,7 +640,7 @@
     loadAllProgress();
   };
 
-  const TOPICS = ['algebra','congruence','geometry','ratio','similarity'];
+  const TOPICS = ['algebra','congruence','geometry','ratio','similarity','pythagoras'];
   const GLOBAL_GOAL = 200; // fixed overall goal (total correct answers)
   const TIER_TARGETS = { bronze: 30, silver: 80, gold: 200 };
   const TOPIC_COLORS = {
@@ -538,8 +648,34 @@
     congruence: '#15803d',
     geometry: '#1d4ed8',
     ratio: '#7e22ce',
-    similarity: '#be123c'
+    similarity: '#be123c',
+    pythagoras: '#0e7490'
   };
+
+  // Web App URL to append progress rows to your Google Sheet (Apps Script doGet handler)
+  // Replace with your deployed Web App URL (same one you used for leaderboard / append)
+  const SHEET_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbw6LKlfduKSEx2ckaNEi1Q7Z-9ieJN7AUZ-hpyXzyFdTLhR21jcggMnxxEEJg1ghtpS/exec';
+
+  // Send a lightweight GET to the Apps Script Web App to append a row
+  function sendProgressToSheet(topic, total) {
+    try {
+      if (!SHEET_WEBAPP_URL || SHEET_WEBAPP_URL.indexOf('PASTE_YOUR') === 0) return;
+      const name = (document.getElementById('studentName') && document.getElementById('studentName').value.trim()) || localStorage.getItem('mathQuizStudentName') || 'Anonymous';
+      const payload = {
+        name: name,
+        subtopic: topic,
+        subcount: String(total),
+        total: String(total),
+        question: '',
+        score: '',
+        ts: (new Date()).toISOString()
+      };
+      const params = Object.keys(payload).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(payload[k])).join('&');
+      // Fire-and-forget via Image GET (avoids CORS issues) and a no-cors fetch fallback
+      const img = new Image(); img.src = SHEET_WEBAPP_URL + (SHEET_WEBAPP_URL.indexOf('?') === -1 ? '?' : '&') + params + '&_=' + Date.now();
+      try { fetch(SHEET_WEBAPP_URL + (SHEET_WEBAPP_URL.indexOf('?') === -1 ? '?' : '&') + params, { method: 'GET', mode: 'no-cors' }).catch(()=>{}); } catch(e){}
+    } catch(e) { /* ignore */ }
+  }
 
   function storageKeyScore(topic){ return `mq_score_${topic}`; }
 
@@ -621,16 +757,20 @@
 
     // Called by quiz pages to increment progress for a topic
     function incrementProgress(topic, amount = 1){
-      const key = storageKeyScore(topic.toLowerCase());
+      const t = topic.toLowerCase();
+      const key = storageKeyScore(t);
       const curr = parseInt(localStorage.getItem(key) || '0',10);
       const next = curr + amount;
       localStorage.setItem(key, String(next));
 
-      const el = document.getElementById(`progress-${topic.toLowerCase()}`);
+      const el = document.getElementById(`progress-${t}`);
       if(el) el.textContent = next;
 
-      updateBar(topic.toLowerCase(), next);
+      updateBar(t, next);
       updateGlobalProgress();
+
+      // Also send an append to the Google Sheet so the server-side leaderboard has data
+      try { sendProgressToSheet(t, next); } catch(e) { /* ignore */ }
     }
 
     // Expose a global function so other quiz pages can call parent.incrementProgress when opened in same tab
@@ -642,6 +782,18 @@
         if (e.key && e.key.indexOf('mq_score_') === 0) {
           // small timeout to ensure the new value is settled
           setTimeout(loadAllProgress, 50);
+
+          // Also send the updated score to the sheet (this runs only in tabs that observe the change)
+          try {
+            const key = e.key; // e.g. 'mq_score_similarity'
+            const topic = key.replace('mq_score_', '');
+            // prefer the newValue if provided, otherwise read from localStorage
+            const valStr = (typeof e.newValue !== 'undefined' && e.newValue !== null) ? e.newValue : localStorage.getItem(key);
+            const total = parseInt(valStr || '0', 10) || 0;
+            if (total > 0) {
+              try { sendProgressToSheet(topic, total); } catch(_){ }
+            }
+          } catch(_) {}
         }
       } catch(err) { /* ignore */ }
     });

@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pythagoras Theorem Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+            background: radial-gradient(circle at 20% 10%, #ecfeff 0%, #e0f2fe 35%, #cffafe 100%);
+            color: #0f172a;
+        }
+        .panel {
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(8px);
+        }
+        .worksheet-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .worksheet-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 18px 32px -16px rgba(8, 145, 178, 0.55);
+        }
+        .badge-done { background: #dcfce7; color: #166534; }
+        .badge-todo { background: #fef3c7; color: #92400e; }
+        .fade-in { animation: fadeIn 0.25s ease-out; }
+        .diagram-line { stroke: #0f172a; stroke-width: 2.5; fill: none; }
+        .diagram-label { fill: #0f172a; font-size: 14px; font-weight: 700; }
+        .diagram-side { fill: #0e7490; font-size: 14px; font-weight: 800; }
+        .diagram-guideline { stroke: #64748b; stroke-width: 1.5; stroke-dasharray: 4 4; fill: none; }
+        .diagram-right-mark { stroke: #e11d48; stroke-width: 2.2; fill: none; }
+        .feedback-good { border-color: #86efac; background: #f0fdf4; }
+        .feedback-bad { border-color: #fca5a5; background: #fef2f2; }
+        .feedback-warn { border-color: #fcd34d; background: #fffbeb; }
+        .line-input {
+            resize: vertical;
+            min-height: 52px;
+            max-height: 170px;
+            line-height: 1.4;
+        }
+        .work-input {
+            min-height: 140px;
+            white-space: pre-wrap;
+        }
+        .work-input::placeholder {
+            color: #64748b;
+            font-weight: 600;
+            line-height: 1.5;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+
+    <button onclick="window.location.href='index.html'" title="Back to Dashboard"
+        style="position:fixed;left:14px;top:14px;z-index:9999;padding:8px 12px;border-radius:10px;background:#ffffff;border:1px solid rgba(0,0,0,0.06);box-shadow:0 6px 18px rgba(0,0,0,0.06);font-weight:700;cursor:pointer">&larr; Dashboard</button>
+
+    <div id="menuView" class="max-w-6xl mx-auto fade-in">
+        <div class="text-center mb-8 mt-8 md:mt-0">
+            <h1 class="text-4xl md:text-5xl font-black tracking-tight text-cyan-900">Pythagoras theorem</h1>
+            <p class="text-cyan-900/80 font-semibold mt-2">Three focused subtopics with varied question types and structured method writing</p>
+        </div>
+
+        <div class="panel rounded-3xl shadow-lg p-4 md:p-5 mb-7 flex flex-col md:flex-row md:items-center gap-3 md:gap-5">
+            <div class="font-bold text-slate-700">Student name</div>
+            <input id="studentName" type="text" placeholder="Enter your name"
+                class="flex-1 border-2 border-cyan-100 focus:border-cyan-400 rounded-xl px-4 py-2 outline-none font-semibold"
+                oninput="saveName()">
+            <div class="w-full md:w-auto text-sm font-bold text-slate-600">Total correct in Pythagoras: <span id="topicTotal" class="text-cyan-800">0</span></div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5" id="worksheetGrid">
+            <button class="worksheet-card panel rounded-3xl p-5 text-left border-t-4 border-cyan-500" onclick="startWorksheet('unknown')">
+                <div class="flex items-center justify-between mb-2">
+                    <h2 class="font-black text-lg text-slate-800">Finding unknowns using Pythagoras Theorem</h2>
+                    <span id="status-unknown" class="text-xs font-bold px-3 py-1 rounded-full badge-todo">Not started</span>
+                </div>
+                <p class="text-sm text-slate-600 mb-4">Mixed side-finding from direct, linked and geometric figures.</p>
+                <div class="text-sm font-bold text-slate-700 mb-2">Progress: <span id="count-unknown">0</span></div>
+                <div class="h-2 bg-cyan-100 rounded-full overflow-hidden">
+                    <div id="bar-unknown" class="h-2 bg-gradient-to-r from-cyan-400 to-cyan-700" style="width:0%"></div>
+                </div>
+            </button>
+
+            <button class="worksheet-card panel rounded-3xl p-5 text-left border-t-4 border-rose-500" onclick="startWorksheet('proofing')">
+                <div class="flex items-center justify-between mb-2">
+                    <h2 class="font-black text-lg text-slate-800">Proofing Pythagoras Theorem</h2>
+                    <span id="status-proofing" class="text-xs font-bold px-3 py-1 rounded-full badge-todo">Not started</span>
+                </div>
+                <p class="text-sm text-slate-600 mb-4">Converse-based proof tasks to establish right angles.</p>
+                <div class="text-sm font-bold text-slate-700 mb-2">Progress: <span id="count-proofing">0</span></div>
+                <div class="h-2 bg-rose-100 rounded-full overflow-hidden">
+                    <div id="bar-proofing" class="h-2 bg-gradient-to-r from-rose-400 to-rose-700" style="width:0%"></div>
+                </div>
+            </button>
+
+            <button class="worksheet-card panel rounded-3xl p-5 text-left border-t-4 border-amber-500" onclick="startWorksheet('application')">
+                <div class="flex items-center justify-between mb-2">
+                    <h2 class="font-black text-lg text-slate-800">Application of pythagoras theorem</h2>
+                    <span id="status-application" class="text-xs font-bold px-3 py-1 rounded-full badge-todo">Not started</span>
+                </div>
+                <p class="text-sm text-slate-600 mb-4">Real-world contexts: ladders, ramps, diagonals and coordinates.</p>
+                <div class="text-sm font-bold text-slate-700 mb-2">Progress: <span id="count-application">0</span></div>
+                <div class="h-2 bg-amber-100 rounded-full overflow-hidden">
+                    <div id="bar-application" class="h-2 bg-gradient-to-r from-amber-400 to-amber-700" style="width:0%"></div>
+                </div>
+            </button>
+        </div>
+    </div>
+
+    <div id="quizView" class="hidden max-w-5xl mx-auto panel rounded-3xl shadow-2xl overflow-hidden fade-in">
+        <div class="bg-cyan-700 text-white p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div>
+                <div class="text-sm uppercase tracking-widest font-bold opacity-80" id="quizWorksheetLabel">Finding unknowns using Pythagoras Theorem</div>
+                <h2 class="text-2xl font-black">Pythagoras theorem practice</h2>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="text-sm font-bold">Question <span id="questionNo">1</span>/10</div>
+                <button onclick="showMenu()" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-xl font-bold">Back</button>
+            </div>
+        </div>
+
+        <div class="p-5 md:p-8">
+            <div id="questionText" class="text-lg font-bold text-slate-800 mb-3"></div>
+            <div id="inputGuide" class="text-sm text-slate-500 mb-5">Write your method clearly in one workspace: equation, theorem reason, and conclusion.</div>
+
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-5">
+                <div id="diagramContainer" class="w-full flex justify-center"></div>
+                <div class="text-xs text-slate-500 mt-2 font-semibold">Diagram not drawn to scale</div>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Your work</label>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <textarea id="workInput" class="line-input work-input w-full border-2 border-slate-200 rounded-xl p-3 outline-none focus:border-cyan-400 font-bold" placeholder="Example:
+AB² + BC² = AC²
+Reason: Pythagoras theorem
+AC = 15 cm"></textarea>
+                        <button type="button" onclick="insertRadical()" class="px-4 py-3 rounded-xl border-2 border-cyan-200 bg-cyan-50 text-cyan-900 font-black hover:bg-cyan-100">Add Radical √</button>
+                        <button type="button" onclick="insertPower()" class="px-4 py-3 rounded-xl border-2 border-sky-200 bg-sky-50 text-sky-900 font-black hover:bg-sky-100">Add Power ²</button>
+                        <button type="button" onclick="showHint()" class="px-4 py-3 rounded-xl border-2 border-amber-200 bg-amber-50 text-amber-900 font-black hover:bg-amber-100">Hint</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="hintPanel" class="mt-4 hidden rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                <div class="text-xs uppercase tracking-wide font-black text-amber-800">Hint</div>
+                <div id="hintText" class="mt-2 text-sm font-semibold text-amber-900"></div>
+                <div id="hintProgress" class="mt-2 text-xs font-bold text-amber-800/80"></div>
+                <div id="hintScaffold" class="mt-3 hidden rounded-xl border border-amber-300 bg-white p-3">
+                    <div class="text-xs uppercase tracking-wide font-black text-amber-800">Mini Scaffolded Solution</div>
+                    <ol id="hintScaffoldList" class="mt-2 list-decimal pl-5 text-sm font-semibold text-slate-800 space-y-1"></ol>
+                </div>
+            </div>
+
+            <div id="feedbackPanel" class="mt-5 hidden rounded-2xl border border-slate-200 bg-white p-4 md:p-5">
+                <div class="flex flex-wrap items-center gap-3">
+                    <span id="feedbackBadge" class="inline-flex items-center rounded-full px-3 py-1 text-xs font-black bg-slate-100 text-slate-700">Review</span>
+                    <p id="feedbackSummary" class="text-sm md:text-base font-bold text-slate-800"></p>
+                </div>
+
+                <div id="feedbackChecklist" class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3"></div>
+
+                <div class="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                    <div class="text-xs uppercase tracking-wide font-black text-slate-600">Model method</div>
+                    <ol id="feedbackMethod" class="mt-2 list-decimal pl-5 text-sm font-semibold text-slate-700 space-y-1"></ol>
+                </div>
+
+                <div class="mt-4 rounded-xl border border-slate-200 bg-cyan-50/50 p-3">
+                    <div class="text-xs uppercase tracking-wide font-black text-cyan-800">Annotated Model Writing</div>
+                    <div class="text-xs text-cyan-900/80 font-semibold mt-1">Use this format in classwork: mathematical statement on the left, justification on the right.</div>
+                    <div class="mt-3 overflow-x-auto rounded-lg border border-cyan-100 bg-white">
+                        <table class="w-full min-w-[560px] border-collapse text-sm">
+                            <thead>
+                                <tr class="bg-cyan-100/70 text-cyan-900">
+                                    <th class="text-left p-2 font-black border-b border-cyan-200 w-2/3">Statement</th>
+                                    <th class="text-left p-2 font-black border-b border-cyan-200">Reason</th>
+                                </tr>
+                            </thead>
+                            <tbody id="feedbackAnnotatedRows" class="text-slate-800"></tbody>
+                        </table>
+                    </div>
+                    <div id="feedbackConclusion" class="mt-3 rounded-lg border border-cyan-200 bg-white p-2 text-sm font-black text-cyan-900"></div>
+                </div>
+            </div>
+
+            <div class="mt-5 flex flex-wrap gap-3">
+                <button id="checkBtn" onclick="checkAnswer()" class="bg-cyan-700 hover:bg-cyan-800 text-white font-black px-8 py-3 rounded-xl">Check Answer</button>
+                <button id="nextBtn" onclick="nextQuestion()" class="hidden bg-slate-800 hover:bg-slate-900 text-white font-black px-8 py-3 rounded-xl">Next Question</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const DEFAULT_WORK_PLACEHOLDER = `Example:
+AB² + BC² = AC² (Pythagoras theorem)
+AC = 15 cm`;
+
+    const PROOFING_WORK_PLACEHOLDER = `a^2 + b^2 = X
+c^2 = X
+
+a^2 + b^2 = c^2 (Converse of Pyth. Theorem)`;
+
+    const WORKSHEETS = ['unknown', 'proofing', 'application'];
+    const MAX_Q = 10;
+    const TOPIC_GOAL = 200;
+    const SUBTOPIC_NAMES = {
+        unknown: 'Finding unknowns using Pythagoras Theorem',
+        proofing: 'Proofing Pythagoras Theorem',
+        application: 'Application of pythagoras theorem'
+    };
+
+    const state = {
+        currentWorksheet: 'unknown',
+        questionNo: 0,
+        currentQuestion: null,
+        isAnswered: false,
+        studentName: 'Student',
+        lastFocusedInputId: 'workInput',
+        hintStep: 0
+    };
+
+    function worksheetLabel(key) {
+        return SUBTOPIC_NAMES[key] || key;
+    }
+
+    function keyFor(ws) {
+        return `mq_score_pythagoras_${ws}`;
+    }
+
+    function loadName() {
+        const saved = localStorage.getItem('hkdse_pyth_username');
+        if (saved) {
+            state.studentName = saved;
+            document.getElementById('studentName').value = saved;
+        }
+    }
+
+    function saveName() {
+        const val = document.getElementById('studentName').value.trim();
+        state.studentName = val || 'Student';
+        if (val) localStorage.setItem('hkdse_pyth_username', val);
+    }
+
+    function getTopicTotal() {
+        let total = 0;
+        WORKSHEETS.forEach((ws) => {
+            total += parseInt(localStorage.getItem(keyFor(ws)) || '0', 10);
+        });
+        return total;
+    }
+
+    function updateWorksheetTracker() {
+        WORKSHEETS.forEach((ws) => {
+            const count = parseInt(localStorage.getItem(keyFor(ws)) || '0', 10);
+            const status = document.getElementById(`status-${ws}`);
+            const countEl = document.getElementById(`count-${ws}`);
+            const barEl = document.getElementById(`bar-${ws}`);
+            if (countEl) countEl.textContent = count;
+            if (barEl) barEl.style.width = Math.min(100, Math.round((count / TOPIC_GOAL) * 100)) + '%';
+            if (status) {
+                status.textContent = count > 0 ? 'Practised' : 'Not started';
+                status.className = `text-xs font-bold px-3 py-1 rounded-full ${count > 0 ? 'badge-done' : 'badge-todo'}`;
+            }
+        });
+
+        const total = getTopicTotal();
+        document.getElementById('topicTotal').textContent = total;
+        localStorage.setItem('mq_score_pythagoras', String(total));
+    }
+
+    function showMenu() {
+        document.getElementById('quizView').classList.add('hidden');
+        document.getElementById('menuView').classList.remove('hidden');
+        updateWorksheetTracker();
+    }
+
+    function startWorksheet(ws) {
+        saveName();
+        state.currentWorksheet = ws;
+        state.questionNo = 0;
+        state.isAnswered = false;
+
+        document.getElementById('quizWorksheetLabel').textContent = worksheetLabel(ws);
+        document.getElementById('menuView').classList.add('hidden');
+        document.getElementById('quizView').classList.remove('hidden');
+
+        nextQuestion();
+    }
+
+    function updateInputGuide(q) {
+        const guide = document.getElementById('inputGuide');
+        const work = document.getElementById('workInput');
+        if (!guide || !q) return;
+        if (q.reasonMode === 'converse') {
+            guide.textContent = 'Proofing tip: line 1 compare squared sides, line 2 cite converse of Pythagoras theorem, line 3 conclude right-angled or not. Press Enter to write neatly line by line.';
+            if (work) work.placeholder = PROOFING_WORK_PLACEHOLDER;
+            return;
+        }
+        guide.textContent = 'Write your full method in the Your work box: theorem equation, reason, substitutions, then conclusion. Press Enter for clear line-by-line working.';
+        if (work) work.placeholder = DEFAULT_WORK_PLACEHOLDER;
+    }
+
+    function randomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function makeQuestion(ws) {
+        if (ws === 'unknown') {
+            const sets = [
+                { a: 9, b: 12, c: 15, ask: 'c' },
+                { a: 8, b: 15, c: 17, ask: 'a' },
+                { a: 7, b: 24, c: 25, ask: 'b' },
+                { a: 20, b: 21, c: 29, ask: 'c' },
+                { a: 5, b: 6, c: Math.sqrt(61), ask: 'c', requireRadical: true, expectedForm: '√61' },
+                { a: 6, b: 7, c: Math.sqrt(85), ask: 'c', requireRadical: true, expectedForm: '√85' },
+                { AB: 13, BC: 5, AC: 12, CD: 9, AD: 15, mode: 'linked' },
+                { AB: 20, BC: 12, AC: 16, CD: 12, AD: 20, mode: 'linked' },
+                { AB: 25, BC: 15, AC: 20, CD: 21, AD: 29, mode: 'linked' },
+                { AB: 10, BC: 6, AC: 8, CD: 7, AD: Math.sqrt(113), mode: 'linked', requireRadical: true, expectedForm: '√113' },
+                { equal: 35, base: 56, height: 21, mode: 'isosceles' },
+                { equal: 15, base: 24, height: 9, mode: 'isosceles' },
+                { equal: 13, base: 18, height: Math.sqrt(88), mode: 'isosceles', requireRadical: true, expectedForm: '2√22' }
+            ];
+            const t = sets[randomInt(0, sets.length - 1)];
+            if (t.mode === 'linked') {
+                return {
+                    text: `In the figure, AC is perpendicular to BD. Given AB=${t.AB} cm, BC=${t.BC} cm and CD=${t.CD} cm. Find AD.`,
+                    answer: t.AD,
+                    diagramType: 'linked',
+                    data: t,
+                    answerLabel: 'AD',
+                    requireRadical: !!t.requireRadical,
+                    expectedForm: t.expectedForm || ''
+                };
+            }
+            if (t.mode === 'isosceles') {
+                return {
+                    text: `In isosceles triangle ABC, AB=AC=${t.equal} cm and BC=${t.base} cm. If AD is the height to BC, find AD.`,
+                    answer: t.height,
+                    diagramType: 'isosceles',
+                    data: t,
+                    answerLabel: 'AD',
+                    requireRadical: !!t.requireRadical,
+                    expectedForm: t.expectedForm || ''
+                };
+            }
+            return {
+                text: 'Find the unknown side in the right-angled triangle.',
+                answer: t[t.ask],
+                diagramType: 'basic',
+                data: t,
+                answerLabel: t.ask,
+                requireRadical: !!t.requireRadical,
+                expectedForm: t.expectedForm || ''
+            };
+        }
+
+        if (ws === 'proofing') {
+            const sets = [
+                { AB: 25, AC: 7, BC: 24, rightAt: 'C', isRight: true },
+                { AB: 17, AC: 8, BC: 15, rightAt: 'C', isRight: true },
+                { AB: 13, AC: 5, BC: 12, rightAt: 'C', isRight: true },
+                { AB: 26, AC: 10, BC: 24, rightAt: 'C', isRight: true },
+                { AB: 15, AC: 8, BC: 10, rightAt: 'none', isRight: false },
+                { AB: 14, AC: 9, BC: 11, rightAt: 'none', isRight: false }
+            ];
+            const d = sets[randomInt(0, sets.length - 1)];
+            const text = d.isRight
+                ? `In triangle ABC, AB=${d.AB} cm, AC=${d.AC} cm and BC=${d.BC} cm. Use the converse of Pythagoras theorem to prove which angle is 90 deg.`
+                : `In triangle ABC, AB=${d.AB} cm, AC=${d.AC} cm and BC=${d.BC} cm. Use the converse of Pythagoras theorem to determine whether the triangle is right-angled.`;
+            return {
+                text,
+                answer: d.isRight ? 90 : -1,
+                diagramType: 'converse',
+                data: d,
+                answerLabel: d.isRight ? `angle ${d.rightAt}` : 'not right-angled',
+                reasonMode: 'converse',
+                expectNotRight: !d.isRight
+            };
+        }
+
+        const appliedSets = [
+            {
+                kind: 'ladder',
+                text: 'A 10 m ladder leans against a wall. The foot is 6 m from the wall. Find the vertical height reached by the ladder.',
+                answer: 8,
+                label: 'height'
+            },
+            {
+                kind: 'wire',
+                text: 'A support wire is 25 m long and is fixed to the ground 7 m from the foot of a pole. Find the height of the pole.',
+                answer: 24,
+                label: 'height'
+            },
+            {
+                kind: 'park',
+                text: 'A rectangular park is 30 m by 16 m. Find the shortest straight path between opposite corners.',
+                answer: 34,
+                label: 'diagonal'
+            },
+            {
+                kind: 'coords',
+                text: 'Find the distance between A(2, 3) and B(8, 12).',
+                answer: Math.sqrt(117),
+                label: 'distance',
+                requireRadical: true,
+                expectedForm: '3√13'
+            },
+            {
+                kind: 'screen',
+                text: 'A rectangular display has width 9 cm and height 12 cm. Find the diagonal length.',
+                answer: 15,
+                label: 'diagonal'
+            },
+            {
+                kind: 'ramp',
+                text: 'A wheelchair ramp is 5 m long and rises 1.2 m. Find the horizontal run of the ramp. Give your answer to 2 d.p.',
+                answer: 4.85,
+                label: 'horizontal run'
+            }
+        ];
+        const q = appliedSets[randomInt(0, appliedSets.length - 1)];
+        return {
+            text: q.text,
+            answer: q.answer,
+            diagramType: 'applied',
+            data: q,
+            answerLabel: q.label,
+            requireRadical: !!q.requireRadical,
+            expectedForm: q.expectedForm || ''
+        };
+    }
+
+    function drawRightMark(x, y, size, xDir, yDir) {
+        const p1x = x + xDir * size;
+        const p1y = y;
+        const p2x = x + xDir * size;
+        const p2y = y + yDir * size;
+        const p3x = x;
+        const p3y = y + yDir * size;
+        return `<path d="M ${p1x} ${p1y} L ${p2x} ${p2y} L ${p3x} ${p3y}" class="diagram-right-mark" />`;
+    }
+
+    function randomDiagramTransform() {
+        return {
+            // Keep transformations subtle so labels (A, B, C, etc.) remain inside view.
+            angle: randomInt(-10, 10),
+            scale: (90 + randomInt(0, 6)) / 100
+        };
+    }
+
+    function wrapWithTransform(content, viewW, viewH, d) {
+        const tf = d && d._tf ? d._tf : { angle: 0, scale: 1 };
+        return `<g transform="translate(${viewW / 2} ${viewH / 2}) rotate(${tf.angle}) scale(${tf.scale}) translate(${-viewW / 2} ${-viewH / 2})">${content}</g>`;
+    }
+
+    function svgBasic(d) {
+        const a = d.ask === 'a' ? 'x' : d.a;
+        const b = d.ask === 'b' ? 'x' : d.b;
+        const c = d.ask === 'c' ? 'x' : d.c;
+        const inner = `
+            <line x1="50" y1="185" x2="250" y2="185" class="diagram-line" />
+            <line x1="250" y1="185" x2="250" y2="45" class="diagram-line" />
+            <line x1="50" y1="185" x2="250" y2="45" class="diagram-line" />
+            ${drawRightMark(250, 185, 14, -1, -1)}
+            <text x="40" y="200" class="diagram-label">A</text>
+            <text x="255" y="200" class="diagram-label">B</text>
+            <text x="255" y="40" class="diagram-label">C</text>
+            <text x="145" y="205" class="diagram-side">${a}</text>
+            <text x="260" y="122" class="diagram-side">${b}</text>
+            <text x="145" y="105" class="diagram-side">${c}</text>
+        `;
+        return `<svg viewBox="0 0 320 220" class="w-full max-w-xl h-auto overflow-visible">${wrapWithTransform(inner, 320, 220, d)}</svg>`;
+    }
+
+    function svgLinked(d) {
+        const inner = `
+            <line x1="35" y1="185" x2="325" y2="185" class="diagram-line" />
+            <line x1="130" y1="185" x2="130" y2="55" class="diagram-line" />
+            <line x1="35" y1="185" x2="130" y2="55" class="diagram-line" />
+            <line x1="130" y1="55" x2="285" y2="185" class="diagram-line" />
+            ${drawRightMark(130, 185, 14, -1, -1)}
+            <text x="26" y="200" class="diagram-label">B</text>
+            <text x="124" y="200" class="diagram-label">C</text>
+            <text x="286" y="200" class="diagram-label">D</text>
+            <text x="124" y="48" class="diagram-label">A</text>
+            <text x="75" y="112" class="diagram-side">${d.AB}</text>
+            <text x="78" y="202" class="diagram-side">${d.BC}</text>
+            <text x="203" y="202" class="diagram-side">${d.CD}</text>
+            <text x="205" y="115" class="diagram-side">x</text>
+        `;
+        return `<svg viewBox="0 0 360 230" class="w-full max-w-xl h-auto overflow-visible">${wrapWithTransform(inner, 360, 230, d)}</svg>`;
+    }
+
+    function svgQuad(d) {
+        const inner = `
+            <line x1="70" y1="80" x2="270" y2="80" class="diagram-line" />
+            <line x1="270" y1="80" x2="270" y2="210" class="diagram-line" />
+            <line x1="270" y1="210" x2="70" y2="210" class="diagram-line" />
+            <line x1="70" y1="210" x2="70" y2="80" class="diagram-line" />
+            <line x1="70" y1="80" x2="270" y2="210" class="diagram-guideline" />
+            ${drawRightMark(70, 210, 16, 1, -1)}
+            ${drawRightMark(270, 80, 16, -1, 1)}
+            <text x="58" y="72" class="diagram-label">Q</text>
+            <text x="276" y="72" class="diagram-label">R</text>
+            <text x="276" y="225" class="diagram-label">S</text>
+            <text x="58" y="225" class="diagram-label">P</text>
+            <text x="165" y="73" class="diagram-side">${d.QR}</text>
+            <text x="280" y="150" class="diagram-side">${d.RS}</text>
+            <text x="165" y="227" class="diagram-side">${d.PS}</text>
+            <text x="164" y="142" class="diagram-side">QS</text>
+        `;
+        return `<svg viewBox="0 0 360 250" class="w-full max-w-xl h-auto overflow-visible">${wrapWithTransform(inner, 360, 250, d)}</svg>`;
+    }
+
+    function svgIsosceles(d) {
+        const inner = `
+            <line x1="70" y1="190" x2="290" y2="190" class="diagram-line" />
+            <line x1="70" y1="190" x2="180" y2="45" class="diagram-line" />
+            <line x1="290" y1="190" x2="180" y2="45" class="diagram-line" />
+            <line x1="180" y1="45" x2="180" y2="190" class="diagram-guideline" />
+            ${drawRightMark(180, 190, 16, -1, -1)}
+            <text x="58" y="205" class="diagram-label">B</text>
+            <text x="294" y="205" class="diagram-label">C</text>
+            <text x="176" y="38" class="diagram-label">A</text>
+            <text x="184" y="205" class="diagram-label">D</text>
+            <text x="112" y="108" class="diagram-side">${d.equal}</text>
+            <text x="236" y="108" class="diagram-side">${d.equal}</text>
+            <text x="165" y="207" class="diagram-side">${d.base}</text>
+            <text x="188" y="118" class="diagram-side">x</text>
+        `;
+        return `<svg viewBox="0 0 360 240" class="w-full max-w-xl h-auto overflow-visible">${wrapWithTransform(inner, 360, 240, d)}</svg>`;
+    }
+
+    function svgConverse(d) {
+        const inner = `
+            <line x1="60" y1="190" x2="300" y2="190" class="diagram-line" />
+            <line x1="60" y1="190" x2="120" y2="65" class="diagram-line" />
+            <line x1="120" y1="65" x2="300" y2="190" class="diagram-line" />
+            <text x="48" y="205" class="diagram-label">A</text>
+            <text x="304" y="205" class="diagram-label">B</text>
+            <text x="110" y="58" class="diagram-label">C</text>
+            <text x="176" y="205" class="diagram-side">${d.AB}</text>
+            <text x="78" y="122" class="diagram-side">${d.AC}</text>
+            <text x="214" y="118" class="diagram-side">${d.BC}</text>
+        `;
+        return `<svg viewBox="0 0 360 240" class="w-full max-w-xl h-auto overflow-visible">${wrapWithTransform(inner, 360, 240, d)}</svg>`;
+    }
+
+    function svgApplied(d) {
+        if (d.kind === 'ladder' || d.kind === 'wire' || d.kind === 'ramp') {
+            const base = d.kind === 'wire' ? '7' : (d.kind === 'ramp' ? 'x' : '6');
+            const vertical = d.kind === 'ladder' ? 'x' : (d.kind === 'wire' ? 'x' : '1.2');
+            const hyp = d.kind === 'ramp' ? '5' : (d.kind === 'wire' ? '25' : '10');
+            return `<svg viewBox="0 0 340 220" class="w-full max-w-xl h-auto overflow-visible">
+                <line x1="55" y1="185" x2="255" y2="185" class="diagram-line" />
+                <line x1="255" y1="185" x2="255" y2="55" class="diagram-line" />
+                <line x1="55" y1="185" x2="255" y2="55" class="diagram-line" />
+                ${drawRightMark(255, 185, 14, -1, -1)}
+                <text x="142" y="206" class="diagram-side">${base}</text>
+                <text x="262" y="124" class="diagram-side">${vertical}</text>
+                <text x="147" y="105" class="diagram-side">${hyp}</text>
+            </svg>`;
+        }
+
+        if (d.kind === 'park' || d.kind === 'screen') {
+            const width = d.kind === 'park' ? '30' : '9';
+            const height = d.kind === 'park' ? '16' : '12';
+            return `<svg viewBox="0 0 360 240" class="w-full max-w-xl h-auto overflow-visible">
+                <line x1="70" y1="70" x2="290" y2="70" class="diagram-line" />
+                <line x1="290" y1="70" x2="290" y2="190" class="diagram-line" />
+                <line x1="290" y1="190" x2="70" y2="190" class="diagram-line" />
+                <line x1="70" y1="190" x2="70" y2="70" class="diagram-line" />
+                <line x1="70" y1="190" x2="290" y2="70" class="diagram-guideline" />
+                ${drawRightMark(70, 190, 14, 1, -1)}
+                <text x="172" y="206" class="diagram-side">${width}</text>
+                <text x="298" y="136" class="diagram-side">${height}</text>
+                <text x="178" y="123" class="diagram-side">x</text>
+            </svg>`;
+        }
+
+        return `<svg viewBox="0 0 360 240" class="w-full max-w-xl h-auto overflow-visible">
+            <line x1="45" y1="200" x2="315" y2="200" class="diagram-guideline" />
+            <line x1="75" y1="170" x2="255" y2="80" class="diagram-line" />
+            <circle cx="75" cy="170" r="4" fill="#0f172a" />
+            <circle cx="255" cy="80" r="4" fill="#0f172a" />
+            <text x="62" y="166" class="diagram-label">A(2,3)</text>
+            <text x="260" y="76" class="diagram-label">B(8,12)</text>
+            <text x="155" y="116" class="diagram-side">AB = x</text>
+            <text x="148" y="217" class="diagram-side">6</text>
+            <text x="317" y="143" class="diagram-side">9</text>
+        </svg>`;
+    }
+
+    function renderDiagram(q) {
+        const el = document.getElementById('diagramContainer');
+        if (q && q.data && !q.data._tf && q.diagramType !== 'applied') {
+            q.data._tf = randomDiagramTransform();
+        }
+        if (q.diagramType === 'basic') el.innerHTML = svgBasic(q.data);
+        else if (q.diagramType === 'linked') el.innerHTML = svgLinked(q.data);
+        else if (q.diagramType === 'quad') el.innerHTML = svgQuad(q.data);
+        else if (q.diagramType === 'isosceles') el.innerHTML = svgIsosceles(q.data);
+        else if (q.diagramType === 'converse') el.innerHTML = svgConverse(q.data);
+        else el.innerHTML = svgApplied(q.data);
+    }
+
+    function clearInputs() {
+        document.getElementById('workInput').value = '';
+        state.lastFocusedInputId = 'workInput';
+        state.hintStep = 0;
+        document.getElementById('hintPanel').classList.add('hidden');
+        document.getElementById('hintText').textContent = '';
+        document.getElementById('hintProgress').textContent = '';
+        document.getElementById('hintScaffold').classList.add('hidden');
+        document.getElementById('hintScaffoldList').innerHTML = '';
+        document.getElementById('feedbackPanel').classList.add('hidden');
+        document.getElementById('feedbackSummary').textContent = '';
+        document.getElementById('feedbackChecklist').innerHTML = '';
+        document.getElementById('feedbackMethod').innerHTML = '';
+        document.getElementById('feedbackAnnotatedRows').innerHTML = '';
+        document.getElementById('feedbackConclusion').textContent = '';
+    }
+
+    function getTargetInputElement() {
+        const active = document.activeElement;
+        if (active && ['workInput'].includes(active.id)) {
+            state.lastFocusedInputId = active.id;
+            return active;
+        }
+
+        const remembered = document.getElementById(state.lastFocusedInputId || '');
+        if (remembered) return remembered;
+        return document.getElementById('workInput');
+    }
+
+    function getHintLines(q) {
+        if (!q) return [];
+
+        if (q.reasonMode === 'converse') {
+            return [
+                'Use this structure: a^2 + b^2 = X, then c^2 = X.',
+                'Then write: a^2 + b^2 = c^2 (Converse of Pyth. Theorem).',
+                'Finally conclude whether the triangle is right-angled or not right-angled.'
+            ];
+        }
+
+        if (q.diagramType === 'linked') {
+            return [
+                'Because AC is perpendicular to BD, solve in two right triangles.',
+                'First find AC using triangle ABC, then use AC with CD to find AD.',
+                'End your working with a labeled conclusion: AD = ...'
+            ];
+        }
+
+        if (q.diagramType === 'isosceles') {
+            return [
+                'In isosceles triangle, the height from A to BC bisects BC.',
+                'Compute BD = BC/2 first, then use triangle ABD.',
+                'Use AB^2 = AD^2 + BD^2 and isolate AD.'
+            ];
+        }
+
+        if (q.diagramType === 'basic') {
+            return [
+                'Name the side opposite the right angle as the hypotenuse.',
+                'Write the squared equation with side labels, then substitute values.',
+                'Rearrange first, then take square root and state the labeled answer.'
+            ];
+        }
+
+        return [
+            'Sketch the right triangle relationship from the context.',
+            'Write a squared Pythagoras equation before computing.',
+            'Conclude with unit and clear label.'
+        ];
+    }
+
+    function showHint() {
+        const panel = document.getElementById('hintPanel');
+        const text = document.getElementById('hintText');
+        const progress = document.getElementById('hintProgress');
+        const scaffold = document.getElementById('hintScaffold');
+        const scaffoldList = document.getElementById('hintScaffoldList');
+        const hints = getHintLines(state.currentQuestion);
+        if (!panel || !text || !progress || !scaffold || !scaffoldList || hints.length === 0) return;
+
+        const idx = Math.min(state.hintStep, hints.length - 1);
+        text.textContent = hints[idx];
+        panel.classList.remove('hidden');
+
+        const stepShown = Math.min(state.hintStep + 1, hints.length);
+        progress.textContent = `Hint ${stepShown}/${hints.length}. Click Hint again to reveal more guidance.`;
+
+        if (idx >= hints.length - 1) {
+            const scaffoldLines = getScaffoldLines(state.currentQuestion);
+            scaffoldList.innerHTML = scaffoldLines.map((line) => `<li>${escapeHtml(line)}</li>`).join('');
+            scaffold.classList.remove('hidden');
+            progress.textContent = `Hint ${hints.length}/${hints.length}. Scaffold unlocked.`;
+        }
+
+        if (state.hintStep < hints.length - 1) state.hintStep++;
+    }
+
+    function getScaffoldLines(q) {
+        if (!q) return [];
+
+        if (q.reasonMode === 'converse') {
+            return [
+                'Step 1: Identify longest side = ____. Then write ____^2 = ____.',
+                'Step 2: Compute the other side squares: ____^2 + ____^2 = ____.',
+                'Step 3: Compare both values and write converse conclusion (right-angled / not right-angled).'
+            ];
+        }
+
+        const model = getAnnotatedSolution(q);
+        const rows = (model.rows || []).slice(0, 4);
+        if (rows.length === 0) return [
+            'Step 1: Write the squared equation with side labels.',
+            'Step 2: Substitute known values and simplify.',
+            'Step 3: Isolate the unknown side and conclude with units.'
+        ];
+
+        return rows.map((row, i) => `Step ${i + 1}: ${row.statement} (${row.reason})`);
+    }
+
+    function extractLikelyAnswerExpression(workText) {
+        const lines = String(workText || '').split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+        if (lines.length === 0) return '';
+        const last = lines[lines.length - 1];
+        if (last.includes('=')) {
+            const part = last.split('=').pop();
+            return (part || '').trim();
+        }
+        const m = last.match(/[0-9+\-*/().√^²³sqrt]+$/i);
+        return m ? m[0] : last;
+    }
+
+    function escapeHtml(str) {
+        return String(str || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function formatExpectedNumber(num) {
+        if (!Number.isFinite(num)) return '';
+        if (Math.abs(num - Math.round(num)) < 1e-9) return String(Math.round(num));
+        return String(parseFloat(num.toFixed(3)));
+    }
+
+    function getExpectedAnswerText(q) {
+        if (!q) return '';
+        if (q.expectNotRight) return 'not right-angled';
+        if (q.requireRadical && q.expectedForm) return q.expectedForm;
+        if (typeof q.answer === 'number') return formatExpectedNumber(q.answer);
+        return String(q.answer);
+    }
+
+    function getConverseComparisonText(d) {
+        if (!d) return '';
+        const sides = [
+            { name: 'AB', val: d.AB },
+            { name: 'AC', val: d.AC },
+            { name: 'BC', val: d.BC }
+        ].sort((x, y) => y.val - x.val);
+        const left = sides[0].val * sides[0].val;
+        const right = sides[1].val * sides[1].val + sides[2].val * sides[2].val;
+        const relation = left === right ? '=' : '!=';
+        return `${sides[0].name}^2 ${relation} ${sides[1].name}^2 + ${sides[2].name}^2 (${left} ${relation} ${right})`;
+    }
+
+    function squareVal(n) {
+        return n * n;
+    }
+
+    function getAnnotatedSolution(q) {
+        if (!q) return { rows: [], conclusion: '' };
+
+        const expected = getExpectedAnswerText(q);
+
+        if (q.reasonMode === 'converse') {
+            const d = q.data;
+            const sides = [
+                { name: 'AB', val: d.AB },
+                { name: 'AC', val: d.AC },
+                { name: 'BC', val: d.BC }
+            ].sort((x, y) => y.val - x.val);
+            const longSide = sides[0];
+            const other1 = sides[1];
+            const other2 = sides[2];
+            const left = squareVal(longSide.val);
+            const right = squareVal(other1.val) + squareVal(other2.val);
+            const equal = left === right;
+
+            return {
+                rows: [
+                    { statement: `${longSide.name}^2 = ${longSide.val}^2 = ${left}`, reason: `${longSide.name} is the longest side.` },
+                    { statement: `${other1.name}^2 + ${other2.name}^2 = ${other1.val}^2 + ${other2.val}^2 = ${right}`, reason: 'Square the other two sides and add.' },
+                    { statement: `${longSide.name}^2 ${equal ? '=' : '!='} ${other1.name}^2 + ${other2.name}^2`, reason: 'Compare both results using the converse of Pythagoras theorem.' }
+                ],
+                conclusion: equal
+                    ? `Therefore ${q.answerLabel} = 90 deg, so triangle ABC is right-angled.`
+                    : 'Therefore triangle ABC is not right-angled.'
+            };
+        }
+
+        if (q.diagramType === 'basic') {
+            const d = q.data;
+            const a2 = squareVal(d.a);
+            const b2 = squareVal(d.b);
+            const c2 = squareVal(d.c);
+            if (d.ask === 'c') {
+                return {
+                    rows: [
+                        { statement: 'AB^2 + BC^2 = AC^2', reason: 'Pythagoras theorem in right triangle ABC.' },
+                        { statement: `${d.a}^2 + ${d.b}^2 = AC^2, so ${a2} + ${b2} = AC^2`, reason: 'Substitute AB and BC.' },
+                        { statement: `AC^2 = ${a2 + b2}`, reason: 'Simplify.' },
+                        { statement: `AC = ${expected}`, reason: 'Take the positive square root for side length.' }
+                    ],
+                    conclusion: `Final answer: AC = ${expected}.`
+                };
+            }
+            if (d.ask === 'a') {
+                return {
+                    rows: [
+                        { statement: 'AB^2 + BC^2 = AC^2', reason: 'Pythagoras theorem in right triangle ABC.' },
+                        { statement: `AB^2 + ${d.b}^2 = ${d.c}^2, so AB^2 + ${b2} = ${c2}`, reason: 'Substitute BC and AC.' },
+                        { statement: `AB^2 = ${c2 - b2}`, reason: 'Rearrange to isolate AB^2.' },
+                        { statement: `AB = ${expected}`, reason: 'Take the positive square root for side length.' }
+                    ],
+                    conclusion: `Final answer: AB = ${expected}.`
+                };
+            }
+            return {
+                rows: [
+                    { statement: 'AB^2 + BC^2 = AC^2', reason: 'Pythagoras theorem in right triangle ABC.' },
+                    { statement: `${d.a}^2 + BC^2 = ${d.c}^2, so ${a2} + BC^2 = ${c2}`, reason: 'Substitute AB and AC.' },
+                    { statement: `BC^2 = ${c2 - a2}`, reason: 'Rearrange to isolate BC^2.' },
+                    { statement: `BC = ${expected}`, reason: 'Take the positive square root for side length.' }
+                ],
+                conclusion: `Final answer: BC = ${expected}.`
+            };
+        }
+
+        if (q.diagramType === 'linked') {
+            const d = q.data;
+            const ac2 = squareVal(d.AB) - squareVal(d.BC);
+            const ad2 = ac2 + squareVal(d.CD);
+            return {
+                rows: [
+                    { statement: 'AC is perpendicular to BD, so triangles ABC and ACD are right-angled at C.', reason: 'Given in the diagram.' },
+                    { statement: `In triangle ABC: AB^2 = AC^2 + BC^2, so AC^2 = ${d.AB}^2 - ${d.BC}^2 = ${ac2}`, reason: 'Pythagoras theorem and rearrangement.' },
+                    { statement: `In triangle ACD: AD^2 = AC^2 + CD^2 = ${ac2} + ${squareVal(d.CD)} = ${ad2}`, reason: 'Pythagoras theorem in triangle ACD.' },
+                    { statement: `AD = ${expected}`, reason: 'Take the positive square root for side length.' }
+                ],
+                conclusion: `Final answer: AD = ${expected}.`
+            };
+        }
+
+        if (q.diagramType === 'isosceles') {
+            const d = q.data;
+            const half = d.base / 2;
+            const ad2 = squareVal(d.equal) - squareVal(half);
+            return {
+                rows: [
+                    { statement: `AB = AC = ${d.equal} and AD is the height on BC.`, reason: 'Given for isosceles triangle ABC.' },
+                    { statement: `BD = DC = BC/2 = ${d.base}/2 = ${half}`, reason: 'Height from apex bisects the base in an isosceles triangle.' },
+                    { statement: `In triangle ABD: AB^2 = AD^2 + BD^2, so AD^2 = ${d.equal}^2 - ${half}^2 = ${ad2}`, reason: 'Pythagoras theorem and rearrangement.' },
+                    { statement: `AD = ${expected}`, reason: 'Take the positive square root for side length.' }
+                ],
+                conclusion: `Final answer: AD = ${expected}.`
+            };
+        }
+
+        if (q.diagramType === 'applied' && q.data) {
+            const d = q.data;
+            if (d.kind === 'ladder') {
+                return {
+                    rows: [
+                        { statement: 'Let the height on the wall be h.', reason: 'Define the unknown clearly.' },
+                        { statement: `h^2 + 6^2 = 10^2`, reason: 'Pythagoras theorem (height, base, ladder).' },
+                        { statement: `h^2 = 100 - 36 = 64`, reason: 'Rearrange and simplify.' },
+                        { statement: `h = ${expected}`, reason: 'Take the positive square root.' }
+                    ],
+                    conclusion: `Final answer: height = ${expected} m.`
+                };
+            }
+            if (d.kind === 'wire') {
+                return {
+                    rows: [
+                        { statement: 'Let the pole height be h.', reason: 'Define the unknown clearly.' },
+                        { statement: `h^2 + 7^2 = 25^2`, reason: 'Pythagoras theorem (height, base, wire).' },
+                        { statement: `h^2 = 625 - 49 = 576`, reason: 'Rearrange and simplify.' },
+                        { statement: `h = ${expected}`, reason: 'Take the positive square root.' }
+                    ],
+                    conclusion: `Final answer: pole height = ${expected} m.`
+                };
+            }
+            if (d.kind === 'ramp') {
+                return {
+                    rows: [
+                        { statement: 'Let the horizontal run be x.', reason: 'Define the unknown clearly.' },
+                        { statement: `x^2 + 1.2^2 = 5^2`, reason: 'Pythagoras theorem (run, rise, ramp).' },
+                        { statement: `x^2 = 25 - 1.44 = 23.56`, reason: 'Rearrange and simplify.' },
+                        { statement: `x = ${expected}`, reason: 'Take the positive square root, rounded to 2 d.p.' }
+                    ],
+                    conclusion: `Final answer: horizontal run = ${expected} m.`
+                };
+            }
+            if (d.kind === 'park' || d.kind === 'screen') {
+                const w = d.kind === 'park' ? 30 : 9;
+                const h = d.kind === 'park' ? 16 : 12;
+                const label = d.kind === 'park' ? 'diagonal path' : 'display diagonal';
+                return {
+                    rows: [
+                        { statement: `Let the ${label} be d.`, reason: 'Define the unknown clearly.' },
+                        { statement: `d^2 = ${w}^2 + ${h}^2`, reason: 'Pythagoras theorem in a rectangle corner triangle.' },
+                        { statement: `d = ${expected}`, reason: 'Take the positive square root.' }
+                    ],
+                    conclusion: `Final answer: ${label} = ${expected}.`
+                };
+            }
+            if (d.kind === 'coords') {
+                return {
+                    rows: [
+                        { statement: 'For A(2,3) and B(8,12), horizontal change = 8 - 2 = 6.', reason: 'Difference in x-coordinates.' },
+                        { statement: 'Vertical change = 12 - 3 = 9.', reason: 'Difference in y-coordinates.' },
+                        { statement: 'AB^2 = 6^2 + 9^2 = 117.', reason: 'Pythagoras theorem on coordinate differences.' },
+                        { statement: `AB = ${expected}`, reason: 'Take the positive square root.' }
+                    ],
+                    conclusion: `Final answer: AB = ${expected}.`
+                };
+            }
+        }
+
+        return {
+            rows: [
+                { statement: 'Write the theorem equation with correct side labels.', reason: 'Shows mathematical structure clearly.' },
+                { statement: 'Substitute values and simplify carefully.', reason: 'Converts the model into numbers.' },
+                { statement: `${q.answerLabel || 'Answer'} = ${expected}`, reason: 'State the final value with the requested label.' }
+            ],
+            conclusion: `Final answer: ${q.answerLabel || 'Answer'} = ${expected}.`
+        };
+    }
+
+    function getMethodLines(q) {
+        if (!q) return [];
+        if (q.reasonMode === 'converse') {
+            const conclusion = q.expectNotRight
+                ? 'Since the equality does not hold numerically, triangle ABC is not right-angled.'
+                : `Since the equality holds numerically, ${q.answerLabel} is 90 deg.`;
+            return [
+                'a^2 + b^2 = X, then c^2 = X',
+                'a^2 + b^2 = c^2 (Converse of Pyth. Theorem)',
+                conclusion
+            ];
+        }
+
+        const answerLabel = q.answerLabel || 'Unknown side';
+        const expected = getExpectedAnswerText(q);
+        return [
+            'Write Pythagoras theorem in squared form for the right triangle.',
+            'Substitute the known values, then isolate the unknown side.',
+            `${answerLabel} = ${expected}`
+        ];
+    }
+
+    function renderFeedbackPanel(type, summary, items, methodLines, annotated) {
+        const panel = document.getElementById('feedbackPanel');
+        const badge = document.getElementById('feedbackBadge');
+        const summaryEl = document.getElementById('feedbackSummary');
+        const checklist = document.getElementById('feedbackChecklist');
+        const method = document.getElementById('feedbackMethod');
+        const rowsEl = document.getElementById('feedbackAnnotatedRows');
+        const conclusionEl = document.getElementById('feedbackConclusion');
+
+        panel.classList.remove('hidden');
+        badge.className = 'inline-flex items-center rounded-full px-3 py-1 text-xs font-black';
+
+        if (type === 'good') {
+            badge.textContent = 'Correct';
+            badge.classList.add('bg-green-100', 'text-green-800');
+        } else if (type === 'warn') {
+            badge.textContent = 'Incomplete';
+            badge.classList.add('bg-amber-100', 'text-amber-800');
+        } else {
+            badge.textContent = 'Needs Fix';
+            badge.classList.add('bg-red-100', 'text-red-800');
+        }
+
+        summaryEl.textContent = summary;
+
+        checklist.innerHTML = (items || []).map((item) => {
+            const cardClass = item.ok ? 'feedback-good' : (type === 'warn' ? 'feedback-warn' : 'feedback-bad');
+            const status = item.ok ? 'OK' : 'Fix';
+            return `
+                <div class="rounded-xl border p-3 ${cardClass}">
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <div class="text-sm font-black text-slate-800">${escapeHtml(item.title)}</div>
+                        <span class="text-xs font-black uppercase tracking-wide text-slate-700">${status}</span>
+                    </div>
+                    <div class="text-xs font-bold text-slate-600">Your input:</div>
+                    <div class="text-sm font-semibold text-slate-800 break-words">${escapeHtml(item.yourInput || 'Blank')}</div>
+                    <div class="mt-2 text-xs font-bold text-slate-600">Expected:</div>
+                    <div class="text-sm font-semibold text-slate-800 break-words">${escapeHtml(item.expected)}</div>
+                    <div class="mt-2 text-xs font-bold text-slate-600">Why this matters:</div>
+                    <div class="text-sm font-semibold text-slate-800">${escapeHtml(item.why)}</div>
+                </div>
+            `;
+        }).join('');
+
+        method.innerHTML = (methodLines || []).map((line) => `<li>${escapeHtml(line)}</li>`).join('');
+
+        const rows = annotated && Array.isArray(annotated.rows) ? annotated.rows : [];
+        rowsEl.innerHTML = rows.map((row) => `
+            <tr class="border-b border-cyan-100 last:border-b-0">
+                <td class="p-2 font-semibold align-top">${escapeHtml(row.statement || '')}</td>
+                <td class="p-2 text-slate-700 align-top">${escapeHtml(row.reason || '')}</td>
+            </tr>
+        `).join('');
+        conclusionEl.textContent = (annotated && annotated.conclusion) ? annotated.conclusion : '';
+    }
+
+    function insertRadical() {
+        const input = getTargetInputElement();
+        if (!input) return;
+        const start = input.selectionStart || 0;
+        const end = input.selectionEnd || 0;
+        const token = '√()';
+        const val = input.value || '';
+        input.value = val.slice(0, start) + token + val.slice(end);
+        const caret = start + 2;
+        input.focus();
+        input.setSelectionRange(caret, caret);
+    }
+
+    function insertPower() {
+        const input = getTargetInputElement();
+        if (!input) return;
+        const start = input.selectionStart || 0;
+        const end = input.selectionEnd || 0;
+        const token = '²';
+        const val = input.value || '';
+        input.value = val.slice(0, start) + token + val.slice(end);
+        const caret = start + token.length;
+        input.focus();
+        input.setSelectionRange(caret, caret);
+    }
+
+    function nextQuestion() {
+        if (state.questionNo >= MAX_Q) {
+            showMenu();
+            return;
+        }
+
+        state.questionNo++;
+        state.currentQuestion = makeQuestion(state.currentWorksheet);
+        state.isAnswered = false;
+
+        document.getElementById('questionNo').textContent = state.questionNo;
+        document.getElementById('questionText').textContent = state.currentQuestion.text;
+        updateInputGuide(state.currentQuestion);
+        renderDiagram(state.currentQuestion);
+        document.getElementById('checkBtn').classList.remove('hidden');
+        document.getElementById('nextBtn').classList.add('hidden');
+        clearInputs();
+    }
+
+    function registerInputFocusTracking() {
+        ['workInput'].forEach((id) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('focus', function () {
+                state.lastFocusedInputId = id;
+            });
+            el.addEventListener('click', function () {
+                state.lastFocusedInputId = id;
+            });
+            el.addEventListener('keyup', function () {
+                state.lastFocusedInputId = id;
+            });
+        });
+    }
+
+    function numericClose(a, b) {
+        return Math.abs(a - b) <= 0.05;
+    }
+
+    function evaluateAnswerExpression(raw) {
+        if (!raw) return NaN;
+        let expr = raw.toLowerCase().replace(/\s+/g, '');
+        // Normalize radical notation: √61 or √(61) -> sqrt(61)
+        expr = expr.replace(/√\(([^)]+)\)/g, 'sqrt($1)');
+        expr = expr.replace(/√([0-9]+(?:\.[0-9]+)?)/g, 'sqrt($1)');
+        expr = expr.replace(/²/g, '^2').replace(/³/g, '^3');
+        expr = expr.replace(/(\d)(sqrt\()/g, '$1*sqrt(');
+        expr = expr.replace(/\)(sqrt\()/g, ')*sqrt(');
+        expr = expr.replace(/(\d)\(/g, '$1*(');
+        expr = expr.replace(/\)(\d)/g, ')*$1');
+        expr = expr.replace(/\^/g, '**');
+        const stripped = expr.replace(/sqrt/g, '');
+        if (/[^0-9+\-*/().]/.test(stripped)) return NaN;
+        const jsExpr = expr.replace(/sqrt\(/g, 'Math.sqrt(');
+        try {
+            const val = Function(`"use strict"; return (${jsExpr});`)();
+            return Number.isFinite(val) ? val : NaN;
+        } catch (_) {
+            return NaN;
+        }
+    }
+
+    function checkAnswer() {
+        if (state.isAnswered) return;
+
+        const workRaw = document.getElementById('workInput').value.trim();
+        const workLower = workRaw.toLowerCase();
+        const answerRaw = extractLikelyAnswerExpression(workRaw);
+        const expectedAnswerText = getExpectedAnswerText(state.currentQuestion);
+        const methodLines = getMethodLines(state.currentQuestion);
+        const annotatedSolution = getAnnotatedSolution(state.currentQuestion);
+
+        if (!workRaw) {
+            renderFeedbackPanel(
+                'warn',
+                'Write your method in the Your work box before checking.',
+                [
+                    {
+                        title: 'Step 1: Setup equation',
+                        ok: false,
+                        yourInput: workRaw,
+                        expected: 'An equation with squares, e.g. a^2 + b^2 = c^2.',
+                        why: 'This sets up the relationship between the sides.'
+                    },
+                    {
+                        title: 'Step 2: Justification',
+                        ok: false,
+                        yourInput: workRaw,
+                        expected: state.currentQuestion.reasonMode === 'converse' ? 'Converse of Pythagoras theorem' : 'Pythagoras theorem',
+                        why: 'A correct theorem name justifies your method.'
+                    },
+                    {
+                        title: 'Step 3: Conclusion',
+                        ok: false,
+                        yourInput: answerRaw,
+                        expected: expectedAnswerText,
+                        why: 'The final value or conclusion should match your working.'
+                    }
+                ],
+                methodLines,
+                annotatedSolution
+            );
+            return;
+        }
+
+        const sentenceLooksLikeEquation = workRaw.includes('=') && (workRaw.includes('^2') || workRaw.includes('²'));
+        const requiresConverse = state.currentQuestion.reasonMode === 'converse';
+        const reasonOk = requiresConverse
+            ? (workLower.includes('pyth') && workLower.includes('converse'))
+            : workLower.includes('pyth');
+        const val = evaluateAnswerExpression(answerRaw);
+        const expectsNotRight = !!state.currentQuestion.expectNotRight;
+        const answerOk = expectsNotRight
+            ? /(not|no)/i.test(workRaw)
+            : (!isNaN(val) && numericClose(val, state.currentQuestion.answer));
+        const proofAngleOk = requiresConverse
+            ? (expectsNotRight ? /(not|no)/i.test(workRaw) : (/(90|right)/i.test(workRaw) || answerOk))
+            : true;
+        const radicalOk = state.currentQuestion.requireRadical ? /sqrt|√/i.test(workRaw) : true;
+
+        if (sentenceLooksLikeEquation && reasonOk && answerOk && radicalOk && proofAngleOk) {
+            renderFeedbackPanel(
+                'good',
+                `Excellent. Your setup, theorem reason, and final answer are all correct. ${state.currentQuestion.answerLabel} = ${expectedAnswerText}.`,
+                [
+                    {
+                        title: 'Step 1: Setup equation',
+                        ok: true,
+                        yourInput: workRaw,
+                        expected: 'Equation in squared form',
+                        why: 'A correct equation anchors the method.'
+                    },
+                    {
+                        title: 'Step 2: Justification',
+                        ok: true,
+                        yourInput: workRaw,
+                        expected: requiresConverse ? 'Converse of Pythagoras theorem' : 'Pythagoras theorem',
+                        why: 'The theorem is correctly stated.'
+                    },
+                    {
+                        title: 'Step 3: Conclusion',
+                        ok: true,
+                        yourInput: answerRaw,
+                        expected: expectedAnswerText,
+                        why: 'Your final result is accurate.'
+                    }
+                ],
+                methodLines,
+                annotatedSolution
+            );
+
+            try {
+                const subKey = keyFor(state.currentWorksheet);
+                const oldSub = parseInt(localStorage.getItem(subKey) || '0', 10);
+                localStorage.setItem(subKey, String(oldSub + 1));
+
+                const total = getTopicTotal();
+                localStorage.setItem('mq_score_pythagoras', String(total));
+
+                if (window && typeof window.__mq_increment === 'function') {
+                    window.__mq_increment('pythagoras', 1);
+                    localStorage.setItem('mq_score_pythagoras', String(total));
+                }
+            } catch (_) {}
+
+            updateWorksheetTracker();
+        } else {
+            const sentenceExpected = requiresConverse
+                ? 'a^2 + b^2 = X\nc^2 = X\n\na^2 + b^2 = c^2 (Converse of Pyth. Theorem)'
+                : 'Equation with squares, e.g. a^2 + b^2 = c^2.';
+
+            const answerWhy = expectsNotRight
+                ? 'In converse questions, your conclusion must state whether the triangle is right-angled.'
+                : 'The final value must match the computed side length.';
+
+            let answerExpected = expectedAnswerText;
+            if (!proofAngleOk && !expectsNotRight) {
+                answerExpected = `${expectedAnswerText} and indicate the right angle (90 deg).`;
+            }
+            if (!radicalOk) {
+                answerExpected = `${expectedAnswerText} (in radical form, using √)`;
+            }
+
+            renderFeedbackPanel(
+                'bad',
+                'Not yet. Check the highlighted steps below to see exactly what to fix and why.',
+                [
+                    {
+                        title: 'Step 1: Setup equation',
+                        ok: sentenceLooksLikeEquation,
+                        yourInput: workRaw,
+                        expected: sentenceExpected,
+                        why: 'This equation shows the side relationship before solving.'
+                    },
+                    {
+                        title: 'Step 2: Justification',
+                        ok: reasonOk,
+                        yourInput: workRaw,
+                        expected: requiresConverse ? 'Converse of Pythagoras theorem' : 'Pythagoras theorem',
+                        why: 'The reason must match the theorem used in your first line.'
+                    },
+                    {
+                        title: 'Step 3: Conclusion',
+                        ok: answerOk && proofAngleOk && radicalOk,
+                        yourInput: answerRaw,
+                        expected: answerExpected,
+                        why: answerWhy
+                    }
+                ],
+                methodLines,
+                annotatedSolution
+            );
+        }
+
+        state.isAnswered = true;
+        document.getElementById('checkBtn').classList.add('hidden');
+        document.getElementById('nextBtn').classList.remove('hidden');
+    }
+
+    window.addEventListener('storage', function (e) {
+        if (e.key && e.key.indexOf('mq_score_pythagoras') === 0) {
+            updateWorksheetTracker();
+        }
+    });
+
+    window.onload = function () {
+        loadName();
+        registerInputFocusTracking();
+        updateWorksheetTracker();
+    };
+</script>
+</body>
+</html>
