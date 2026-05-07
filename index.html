@@ -29,6 +29,7 @@
       --color-ratio: #f3e8ff;
       --color-similarity: #ffe4e6;
       --color-pythagoras: #ecfeff;
+      --color-mensuration: #eef2ff;
       
       /* Topic Icon Colors */
       --icon-algebra: #d97706;
@@ -37,6 +38,7 @@
       --icon-ratio: #7e22ce;
       --icon-similarity: #be123c;
       --icon-pythagoras: #0e7490;
+      --icon-mensuration: #4338ca;
     }
 
     body {
@@ -231,6 +233,7 @@
     .ratio { background-color: var(--color-ratio); color: var(--icon-ratio); }
     .similarity { background-color: var(--color-similarity); color: var(--icon-similarity); }
     .pythagoras { background-color: var(--color-pythagoras); color: var(--icon-pythagoras); }
+    .mensuration { background-color: var(--color-mensuration); color: var(--icon-mensuration); }
 
     footer {
       text-align: center;
@@ -557,6 +560,48 @@
 
       <a href="Pythagoras.html" class="play-link" style="margin-top:14px">Start Quiz →</a>
     </div>
+
+    <div class="card" style="max-width: 250px;">
+      <div class="icon-circle mensuration">
+        <i data-lucide="compass" stroke-width="2.5" width="36" height="36"></i>
+      </div>
+      <h2>Mensuration</h2>
+
+      <div style="width:100%;margin:12px 0 0;text-align:left">
+        <div style="display:flex;justify-content:space-between;align-items:center;font-weight:700;color:var(--text-muted);font-size:0.95rem;margin-bottom:6px">
+          <span>Progress</span>
+          <span id="progress-mensuration">0</span>
+        </div>
+        <div style="background:#eef2ff;border-radius:999px;height:12px;overflow:hidden">
+          <div id="bar-mensuration" style="height:12px;width:0%;background:linear-gradient(90deg,#6366f1,#4338ca)"></div>
+        </div>
+        <div class="tiers" style="display:flex;gap:8px;margin-top:10px;align-items:flex-end">
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:800;color:#4338ca;margin-bottom:4px">Bronze</div>
+            <div style="background:#e0e7ff;border-radius:999px;height:10px;overflow:hidden">
+              <div id="bronze-fill-mensuration" style="height:10px;width:0%;background:#4338ca"></div>
+            </div>
+            <div id="bronze-text-mensuration" style="font-size:12px;color:var(--text-muted);font-weight:700;margin-top:4px">0/30</div>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:800;color:#6b7280;margin-bottom:4px">Silver</div>
+            <div style="background:#f3f4f6;border-radius:999px;height:10px;overflow:hidden">
+              <div id="silver-fill-mensuration" style="height:10px;width:0%;background:#374151"></div>
+            </div>
+            <div id="silver-text-mensuration" style="font-size:12px;color:var(--text-muted);font-weight:700;margin-top:4px">0/80</div>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:800;color:#b45309;margin-bottom:4px">Gold</div>
+            <div style="background:#fff7ed;border-radius:999px;height:10px;overflow:hidden">
+              <div id="gold-fill-mensuration" style="height:10px;width:0%;background:#b45309"></div>
+            </div>
+            <div id="gold-text-mensuration" style="font-size:12px;color:var(--text-muted);font-weight:700;margin-top:4px">0/200</div>
+          </div>
+        </div>
+      </div>
+
+      <a href="Mensuration.html" class="play-link" style="margin-top:14px">Start Quiz →</a>
+    </div>
   </div>
 
   <!-- Leaderboard Modal (hidden by default) -->
@@ -640,7 +685,7 @@
     loadAllProgress();
   };
 
-  const TOPICS = ['algebra','congruence','geometry','ratio','similarity','pythagoras'];
+  const TOPICS = ['algebra','congruence','geometry','ratio','similarity','pythagoras','mensuration'];
   const GLOBAL_GOAL = 200; // fixed overall goal (total correct answers)
   const TIER_TARGETS = { bronze: 30, silver: 80, gold: 200 };
   const TOPIC_COLORS = {
@@ -649,7 +694,8 @@
     geometry: '#1d4ed8',
     ratio: '#7e22ce',
     similarity: '#be123c',
-    pythagoras: '#0e7490'
+    pythagoras: '#0e7490',
+    mensuration: '#4338ca'
   };
 
   // Web App URL to append progress rows to your Google Sheet (Apps Script doGet handler)

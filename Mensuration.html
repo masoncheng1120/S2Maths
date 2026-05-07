@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mensuration Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+            background: radial-gradient(circle at 12% 8%, #ecfeff 0%, #e0f2fe 35%, #cffafe 100%);
+            color: #0f172a;
+        }
+        .panel { background: rgba(255, 255, 255, 0.96); border: 1px solid rgba(255, 255, 255, 0.75); backdrop-filter: blur(8px); }
+        .worksheet-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .worksheet-card:hover { transform: translateY(-5px); box-shadow: 0 18px 32px -16px rgba(8, 145, 178, 0.55); }
+        .badge-done { background: #dcfce7; color: #166534; }
+        .badge-todo { background: #fef3c7; color: #92400e; }
+        .line-input { resize: vertical; min-height: 150px; max-height: 260px; line-height: 1.45; }
+        .diagram-line { stroke: #0f172a; stroke-width: 2.5; fill: none; }
+        .diagram-aux { stroke: #64748b; stroke-width: 1.8; fill: none; stroke-dasharray: 4 4; }
+        .diagram-label { fill: #0f172a; font-size: 13px; font-weight: 700; }
+        .diagram-side { fill: #0e7490; font-size: 14px; font-weight: 800; }
+        .diagram-fill { fill: rgba(8, 145, 178, 0.15); }
+        .diagram-soft { fill: rgba(99, 102, 241, 0.14); }
+        .diagram-accent { stroke: #0e7490; stroke-width: 3; fill: none; }
+        .diagram-dot { fill: #0f172a; }
+        .feedback-good { border-color: #86efac; background: #f0fdf4; }
+        .feedback-bad { border-color: #fca5a5; background: #fef2f2; }
+        .feedback-warn { border-color: #fcd34d; background: #fffbeb; }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+
+<button onclick="window.location.href='index.html'" title="Back to Dashboard"
+    style="position:fixed;left:14px;top:14px;z-index:9999;padding:8px 12px;border-radius:10px;background:#ffffff;border:1px solid rgba(0,0,0,0.06);box-shadow:0 6px 18px rgba(0,0,0,0.06);font-weight:700;cursor:pointer">&larr; Dashboard</button>
+
+<div id="menuView" class="max-w-6xl mx-auto">
+    <div class="text-center mb-8 mt-8 md:mt-0">
+        <h1 class="text-4xl md:text-5xl font-black tracking-tight text-cyan-900">Mensuration</h1>
+        <p class="text-cyan-900/80 font-semibold mt-2">4 worksheets: arc length, sector area, cylinder volume, cylinder surface area</p>
+    </div>
+
+    <div class="panel rounded-3xl shadow-lg p-4 md:p-5 mb-7 flex flex-col md:flex-row md:items-center gap-3 md:gap-5">
+        <div class="font-bold text-slate-700">Student name</div>
+        <input id="studentName" type="text" placeholder="Enter your name"
+            class="flex-1 border-2 border-cyan-100 focus:border-cyan-400 rounded-xl px-4 py-2 outline-none font-semibold"
+            oninput="saveName()">
+        <div class="w-full md:w-auto text-sm font-bold text-slate-600">Total correct in Mensuration: <span id="topicTotal" class="text-cyan-800">0</span></div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <button class="worksheet-card panel rounded-3xl p-5 text-left border-t-4 border-slate-700 md:col-span-2" onclick="startWorksheet('mixed')">
+            <div class="flex items-center justify-between mb-2">
+                <h2 class="font-black text-lg text-slate-800">Mixed Mensuration Challenge</h2>
+                <span class="text-xs font-bold px-3 py-1 rounded-full" style="background:#e2e8f0;color:#334155">10 Questions</span>
+            </div>
+            <p class="text-sm text-slate-600 mb-1">Random mix from all 4 worksheets. New run generates a fresh set each time.</p>
+            <div class="text-xs font-bold text-slate-500">Score is shown live and at the end of each run.</div>
+        </button>
+
+        <button class="worksheet-card panel rounded-3xl p-5 text-left border-t-4 border-cyan-500" onclick="startWorksheet('arc')">
+            <div class="flex items-center justify-between mb-2">
+                <h2 class="font-black text-lg text-slate-800">Lengths of Arcs</h2>
+                <span id="status-arc" class="text-xs font-bold px-3 py-1 rounded-full badge-todo">Not started</span>
+            </div>
+            <p class="text-sm text-slate-600 mb-4">Circumference review, major/minor arcs, and angle-arc links.</p>
+            <div class="text-sm font-bold text-slate-700 mb-2">Progress: <span id="count-arc">0</span></div>
+            <div class="h-2 bg-cyan-100 rounded-full overflow-hidden"><div id="bar-arc" class="h-2 bg-gradient-to-r from-cyan-400 to-cyan-700" style="width:0%"></div></div>
+        </button>
+
+        <button class="worksheet-card panel rounded-3xl p-5 text-left border-t-4 border-rose-500" onclick="startWorksheet('sector')">
+            <div class="flex items-center justify-between mb-2">
+                <h2 class="font-black text-lg text-slate-800">Areas of Sectors</h2>
+                <span id="status-sector" class="text-xs font-bold px-3 py-1 rounded-full badge-todo">Not started</span>
+            </div>
+            <p class="text-sm text-slate-600 mb-4">Sector area, finding radius/angle, and ring-region area.</p>
+            <div class="text-sm font-bold text-slate-700 mb-2">Progress: <span id="count-sector">0</span></div>
+            <div class="h-2 bg-rose-100 rounded-full overflow-hidden"><div id="bar-sector" class="h-2 bg-gradient-to-r from-rose-400 to-rose-700" style="width:0%"></div></div>
+        </button>
+
+        <button class="worksheet-card panel rounded-3xl p-5 text-left border-t-4 border-amber-500" onclick="startWorksheet('volume')">
+            <div class="flex items-center justify-between mb-2">
+                <h2 class="font-black text-lg text-slate-800">Volumes of Circular Cylinders</h2>
+                <span id="status-volume" class="text-xs font-bold px-3 py-1 rounded-full badge-todo">Not started</span>
+            </div>
+            <p class="text-sm text-slate-600 mb-4">Volume formula, unknown radius/height, transfer of liquid.</p>
+            <div class="text-sm font-bold text-slate-700 mb-2">Progress: <span id="count-volume">0</span></div>
+            <div class="h-2 bg-amber-100 rounded-full overflow-hidden"><div id="bar-volume" class="h-2 bg-gradient-to-r from-amber-400 to-amber-700" style="width:0%"></div></div>
+        </button>
+
+        <button class="worksheet-card panel rounded-3xl p-5 text-left border-t-4 border-indigo-500" onclick="startWorksheet('surface')">
+            <div class="flex items-center justify-between mb-2">
+                <h2 class="font-black text-lg text-slate-800">Surface Areas of Cylinders</h2>
+                <span id="status-surface" class="text-xs font-bold px-3 py-1 rounded-full badge-todo">Not started</span>
+            </div>
+            <p class="text-sm text-slate-600 mb-4">Curved/total area, unknown dimensions, and composite solids.</p>
+            <div class="text-sm font-bold text-slate-700 mb-2">Progress: <span id="count-surface">0</span></div>
+            <div class="h-2 bg-indigo-100 rounded-full overflow-hidden"><div id="bar-surface" class="h-2 bg-gradient-to-r from-indigo-400 to-indigo-700" style="width:0%"></div></div>
+        </button>
+    </div>
+</div>
+
+<div id="quizView" class="hidden max-w-5xl mx-auto panel rounded-3xl shadow-2xl overflow-hidden">
+    <div class="bg-cyan-700 text-white p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div>
+            <div class="text-sm uppercase tracking-widest font-bold opacity-80" id="quizWorksheetLabel">Lengths of Arcs</div>
+            <h2 class="text-2xl font-black">Mensuration practice</h2>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="text-sm font-bold">Question <span id="questionNo">1</span>/10</div>
+            <div class="text-sm font-black bg-white/20 rounded-lg px-3 py-1">Score <span id="runScore">0/10</span></div>
+            <button onclick="showMenu()" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-xl font-bold">Back</button>
+        </div>
+    </div>
+
+    <div class="p-5 md:p-8">
+        <div id="questionText" class="text-lg font-bold text-slate-800 mb-3"></div>
+        <div id="inputGuide" class="text-sm text-slate-500 mb-5">Type your steps: formula, substitution, simplification, conclusion.</div>
+
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-5">
+            <div id="diagramContainer" class="w-full flex justify-center"></div>
+            <div class="text-xs text-slate-500 mt-2 font-semibold">Diagram not drawn to scale</div>
+        </div>
+
+        <label class="block font-bold text-slate-700 mb-1">Your work (typed steps)</label>
+        <textarea id="workInput" class="line-input w-full border-2 border-slate-200 rounded-xl p-3 outline-none focus:border-cyan-400 font-bold" placeholder="Example:&#10;Write your formula, substitute values, simplify step by step."></textarea>
+
+        <div class="mt-3 flex flex-wrap gap-2">
+            <button type="button" onclick="insertPi()" class="px-4 py-2 rounded-xl border-2 border-cyan-200 bg-cyan-50 text-cyan-900 font-black hover:bg-cyan-100">Add π</button>
+            <button type="button" onclick="insertPower()" class="px-4 py-2 rounded-xl border-2 border-sky-200 bg-sky-50 text-sky-900 font-black hover:bg-sky-100">Add ²</button>
+            <button type="button" onclick="insertCube()" class="px-4 py-2 rounded-xl border-2 border-indigo-200 bg-indigo-50 text-indigo-900 font-black hover:bg-indigo-100">Add ³</button>
+            <button type="button" onclick="showHint()" class="px-4 py-2 rounded-xl border-2 border-amber-200 bg-amber-50 text-amber-900 font-black hover:bg-amber-100">Hint</button>
+        </div>
+
+        <div id="hintPanel" class="mt-4 hidden rounded-2xl border border-amber-200 bg-amber-50 p-4">
+            <div class="text-xs uppercase tracking-wide font-black text-amber-800">Hint</div>
+            <div id="hintText" class="mt-2 text-sm font-semibold text-amber-900"></div>
+            <div id="hintProgress" class="mt-2 text-xs font-bold text-amber-800/80"></div>
+            <div id="hintScaffold" class="mt-3 hidden rounded-xl border border-amber-300 bg-white p-3">
+                <div class="text-xs uppercase tracking-wide font-black text-amber-800">Scaffold</div>
+                <ol id="hintScaffoldList" class="mt-2 list-decimal pl-5 text-sm font-semibold text-slate-800 space-y-1"></ol>
+            </div>
+        </div>
+
+        <div id="feedbackPanel" class="mt-5 hidden rounded-2xl border border-slate-200 bg-white p-4 md:p-5">
+            <div class="flex flex-wrap items-center gap-3">
+                <span id="feedbackBadge" class="inline-flex items-center rounded-full px-3 py-1 text-xs font-black bg-slate-100 text-slate-700">Review</span>
+                <p id="feedbackSummary" class="text-sm md:text-base font-bold text-slate-800"></p>
+            </div>
+            <div id="feedbackChecklist" class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3"></div>
+            <div class="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <div class="text-xs uppercase tracking-wide font-black text-slate-600">Model method</div>
+                <ol id="feedbackMethod" class="mt-2 list-decimal pl-5 text-sm font-semibold text-slate-700 space-y-1"></ol>
+            </div>
+        </div>
+
+        <div class="mt-5 flex flex-wrap gap-3">
+            <button id="checkBtn" onclick="checkAnswer()" class="bg-cyan-700 hover:bg-cyan-800 text-white font-black px-8 py-3 rounded-xl">Check Answer</button>
+            <button id="nextBtn" onclick="nextQuestion()" class="hidden bg-slate-800 hover:bg-slate-900 text-white font-black px-8 py-3 rounded-xl">Next Question</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const WORKSHEETS = ['arc', 'sector', 'volume', 'surface'];
+    const QUIZ_MODES = ['arc', 'sector', 'volume', 'surface', 'mixed'];
+    const MAX_Q = 10;
+    const TOPIC_GOAL = 200;
+
+    const LABELS = {
+        arc: 'Lengths of Arcs',
+        sector: 'Areas of Sectors',
+        volume: 'Volumes of Circular Cylinders',
+        surface: 'Surface Areas of Cylinders',
+        mixed: 'Mixed Mensuration Challenge'
+    };
+
+    const state = {
+        currentWorksheet: 'arc',
+        questionNo: 0,
+        currentQuestion: null,
+        isAnswered: false,
+        studentName: 'Student',
+        hintStep: 0,
+        runScore: 0,
+        runFinished: false,
+        lastQuestionMode: null
+    };
+
+    function keyFor(ws) { return `mq_score_mensuration_${ws}`; }
+    function topicTotalKey() { return 'mq_score_mensuration'; }
+
+    function randomInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+    function pick(arr) { return arr[randomInt(0, arr.length - 1)]; }
+    function formatNum(n) {
+        if (!Number.isFinite(n)) return '';
+        if (Math.abs(n - Math.round(n)) < 1e-9) return String(Math.round(n));
+        return String(parseFloat(n.toFixed(3)));
+    }
+    function closeEnough(a, b) { return Math.abs(a - b) <= 0.08; }
+
+    function loadName() {
+        const saved = localStorage.getItem('hkdse_mensuration_username') || localStorage.getItem('mathQuizStudentName');
+        if (saved) {
+            state.studentName = saved;
+            document.getElementById('studentName').value = saved;
+        }
+    }
+
+    function saveName() {
+        const val = document.getElementById('studentName').value.trim();
+        state.studentName = val || 'Student';
+        if (val) localStorage.setItem('hkdse_mensuration_username', val);
+    }
+
+    function getTopicTotal() {
+        let total = 0;
+        WORKSHEETS.forEach((ws) => { total += parseInt(localStorage.getItem(keyFor(ws)) || '0', 10); });
+        return total;
+    }
+
+    function updateWorksheetTracker() {
+        WORKSHEETS.forEach((ws) => {
+            const count = parseInt(localStorage.getItem(keyFor(ws)) || '0', 10);
+            document.getElementById(`count-${ws}`).textContent = count;
+            document.getElementById(`bar-${ws}`).style.width = Math.min(100, Math.round((count / TOPIC_GOAL) * 100)) + '%';
+            const status = document.getElementById(`status-${ws}`);
+            status.textContent = count > 0 ? 'Practised' : 'Not started';
+            status.className = `text-xs font-bold px-3 py-1 rounded-full ${count > 0 ? 'badge-done' : 'badge-todo'}`;
+        });
+
+        const total = getTopicTotal();
+        document.getElementById('topicTotal').textContent = total;
+        localStorage.setItem(topicTotalKey(), String(total));
+    }
+
+    function showMenu() {
+        document.getElementById('quizView').classList.add('hidden');
+        document.getElementById('menuView').classList.remove('hidden');
+        updateWorksheetTracker();
+    }
+
+    function startWorksheet(ws) {
+        saveName();
+        state.currentWorksheet = ws;
+        state.questionNo = 0;
+        state.isAnswered = false;
+        state.runScore = 0;
+        state.runFinished = false;
+        state.lastQuestionMode = null;
+        document.getElementById('quizWorksheetLabel').textContent = LABELS[ws] || ws;
+        document.getElementById('menuView').classList.add('hidden');
+        document.getElementById('quizView').classList.remove('hidden');
+        updateScorePill();
+        nextQuestion();
+    }
+
+    function updateScorePill() {
+        const pill = document.getElementById('runScore');
+        if (!pill) return;
+        pill.textContent = `${state.runScore}/${MAX_Q}`;
+    }
+
+    function showRunSummary() {
+        state.runFinished = true;
+        document.getElementById('questionText').textContent = `Run complete. Score: ${state.runScore}/${MAX_Q}`;
+        document.getElementById('inputGuide').textContent = 'You can retry this mode for a fresh random set, or go back and choose another mode.';
+        document.getElementById('diagramContainer').innerHTML = '<div class="text-center py-6"><div class="text-3xl font-black text-cyan-800">' + state.runScore + '/' + MAX_Q + '</div><div class="text-sm font-bold text-slate-600 mt-1">Final score this run</div></div>';
+        document.getElementById('workInput').value = '';
+        document.getElementById('workInput').setAttribute('disabled', 'disabled');
+        document.getElementById('checkBtn').classList.add('hidden');
+        const next = document.getElementById('nextBtn');
+        next.classList.remove('hidden');
+        next.textContent = 'Play Again';
+    }
+
+    function polarToXY(cx, cy, rr, deg) {
+        const rad = ((deg - 90) * Math.PI) / 180;
+        return { x: cx + rr * Math.cos(rad), y: cy + rr * Math.sin(rad) };
+    }
+
+    function svgFrame(content, w = 360, h = 260) {
+        return `<svg viewBox="0 0 ${w} ${h}" class="w-full max-w-xl h-auto">
+            <defs>
+                <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#ffffff" />
+                    <stop offset="100%" stop-color="#ecfeff" />
+                </linearGradient>
+            </defs>
+            <rect x="8" y="8" width="${w - 16}" height="${h - 16}" rx="14" fill="url(#bgGrad)" stroke="#dbeafe" />
+            ${content}
+        </svg>`;
+    }
+
+    function svgCircleArc(q) {
+        const r = q.diagram.r;
+        const angle = q.diagram.angle;
+        const cx = 180;
+        const cy = 135;
+        const rr = 88;
+        const isFullCircle = angle >= 358;
+
+        if (isFullCircle) {
+            const dVal = r * 2;
+            const measureLine = q.diagram.showDiam
+                ? `<line x1="${cx - rr}" y1="${cy}" x2="${cx + rr}" y2="${cy}" class="diagram-aux" />`
+                : `<line x1="${cx}" y1="${cy}" x2="${cx + rr}" y2="${cy}" class="diagram-aux" />`;
+            const measureLabel = q.diagram.showDiam
+                ? `<text x="${cx - 20}" y="${cy - 10}" class="diagram-side">d = ${dVal}</text>`
+                : `<text x="${cx + rr / 2 - 4}" y="${cy - 8}" class="diagram-side">r = ${r}</text>`;
+            const content = `
+                <circle cx="${cx}" cy="${cy}" r="${rr}" class="diagram-line" />
+                <circle cx="${cx}" cy="${cy}" r="3.8" class="diagram-dot" />
+                <text x="${cx + 6}" y="${cy - 4}" class="diagram-label">O</text>
+                ${measureLine}
+                ${measureLabel}
+            `;
+            return svgFrame(content);
+        }
+
+        const pTop = polarToXY(cx, cy, rr, 0);
+        const pEnd = polarToXY(cx, cy, rr, angle);
+        const rLabelPt = polarToXY(cx, cy, rr * 0.55, 0);
+        const angleLabelPt = polarToXY(cx, cy, 32, angle / 2);
+        const arcLabelPt = polarToXY(cx, cy, rr + 16, angle / 2);
+
+        const content = `
+            <circle cx="${cx}" cy="${cy}" r="${rr}" class="diagram-line" />
+            <line x1="${cx}" y1="${cy}" x2="${pTop.x}" y2="${pTop.y}" class="diagram-line" />
+            <line x1="${cx}" y1="${cy}" x2="${pEnd.x}" y2="${pEnd.y}" class="diagram-line" />
+            <path d="M ${pTop.x} ${pTop.y} A ${rr} ${rr} 0 ${angle > 180 ? 1 : 0} 1 ${pEnd.x} ${pEnd.y}" class="diagram-accent" />
+            <path d="M ${cx} ${cy - 26} A 26 26 0 ${angle > 180 ? 1 : 0} 1 ${cx + 26 * Math.sin((angle * Math.PI) / 180)} ${cy - 26 * Math.cos((angle * Math.PI) / 180)}" class="diagram-aux" />
+            <circle cx="${cx}" cy="${cy}" r="3.8" class="diagram-dot" />
+            <text x="${cx + 8}" y="${cy - 4}" class="diagram-label">O</text>
+            <text x="${rLabelPt.x + 4}" y="${rLabelPt.y - 6}" class="diagram-side">r = ${r}</text>
+            <text x="${angleLabelPt.x - 10}" y="${angleLabelPt.y + 5}" class="diagram-side">${angle}°</text>
+        `;
+        return svgFrame(content);
+    }
+
+    function svgSector(q) {
+        const r = q.diagram.r;
+        const angle = q.diagram.angle;
+        const cx = 180;
+        const cy = 135;
+        const rr = Math.min(95, angle === 360 ? 80 : 95);
+        const isFullCircle = angle >= 358;
+
+        if (isFullCircle) {
+            const dVal = r * 2;
+            const measureLine = q.diagram.showDiam
+                ? `<line x1="${cx - rr}" y1="${cy}" x2="${cx + rr}" y2="${cy}" class="diagram-aux" />`
+                : `<line x1="${cx}" y1="${cy}" x2="${cx + rr}" y2="${cy}" class="diagram-aux" />`;
+            const measureLabel = q.diagram.showDiam
+                ? `<text x="${cx - 20}" y="${cy - 10}" class="diagram-side">d = ${dVal}</text>`
+                : `<text x="${cx + rr / 2 - 4}" y="${cy - 8}" class="diagram-side">r = ${r}</text>`;
+            const content = `
+                <circle cx="${cx}" cy="${cy}" r="${rr}" class="diagram-fill" stroke="#0f172a" stroke-width="2.3" />
+                <circle cx="${cx}" cy="${cy}" r="3.8" class="diagram-dot" />
+                <text x="${cx + 6}" y="${cy - 4}" class="diagram-label">O</text>
+                ${measureLine}
+                ${measureLabel}
+            `;
+            return svgFrame(content);
+        }
+
+        const pTop = polarToXY(cx, cy, rr, 0);
+        const pEnd = polarToXY(cx, cy, rr, angle);
+        // Place radius label along first radius, outside the arc region
+        const rLabelPt = polarToXY(cx, cy, rr * 0.55, 0);
+        // Place angle label at 40% radius along bisector, well away from arc
+        const angleLabelPt = polarToXY(cx, cy, rr * 0.38, angle / 2);
+        // Place arc label at outside arc midpoint
+        const arcLabelPt = polarToXY(cx, cy, rr + 16, angle / 2);
+
+        const content = `
+            <path d="M ${cx} ${cy} L ${pTop.x} ${pTop.y} A ${rr} ${rr} 0 ${angle > 180 ? 1 : 0} 1 ${pEnd.x} ${pEnd.y} Z" class="diagram-fill" stroke="#0f172a" stroke-width="2.3" />
+            <line x1="${cx}" y1="${cy}" x2="${pTop.x}" y2="${pTop.y}" class="diagram-line" />
+            <line x1="${cx}" y1="${cy}" x2="${pEnd.x}" y2="${pEnd.y}" class="diagram-line" />
+            <circle cx="${cx}" cy="${cy}" r="3.8" class="diagram-dot" />
+            <text x="${cx + 7}" y="${cy - 5}" class="diagram-label">O</text>
+            <text x="${rLabelPt.x + 4}" y="${rLabelPt.y - 5}" class="diagram-side">r=${r}</text>
+            <text x="${angleLabelPt.x - 12}" y="${angleLabelPt.y + 5}" class="diagram-side">${angle}°</text>
+        `;
+        return svgFrame(content);
+    }
+
+    function svgRingSector(q) {
+        const R = q.diagram.R;
+        const r = q.diagram.r;
+        const angle = q.diagram.angle;
+        const cx = 180;
+        const cy = 135;
+        const outer = 95;
+        const inner = Math.max(18, Math.round(outer * (r / R)));
+        const pO1 = polarToXY(cx, cy, outer, 0);
+        const pO2 = polarToXY(cx, cy, outer, angle);
+        const pI1 = polarToXY(cx, cy, inner, 0);
+        const pI2 = polarToXY(cx, cy, inner, angle);
+        // R label: midway along FIRST radial arm (angle=0), between inner and outer
+        const rOuterLabel = polarToXY(cx, cy, (inner + outer) / 2, 0);
+        // r label: midway along SECOND radial arm (at sector angle), between center and inner arc
+        const rInnerLabel = polarToXY(cx, cy, Math.max(22, inner * 0.55), angle);
+        // angle label: outside outer arc at bisector
+        const angleLabel = polarToXY(cx, cy, outer + 18, angle / 2);
+        const content = `
+            <path d="M ${pO1.x} ${pO1.y} A ${outer} ${outer} 0 ${angle > 180 ? 1 : 0} 1 ${pO2.x} ${pO2.y} L ${pI2.x} ${pI2.y} A ${inner} ${inner} 0 ${angle > 180 ? 1 : 0} 0 ${pI1.x} ${pI1.y} Z" class="diagram-soft" stroke="#0f172a" stroke-width="2.2" />
+            <line x1="${cx}" y1="${cy}" x2="${pO1.x}" y2="${pO1.y}" class="diagram-aux" />
+            <line x1="${cx}" y1="${cy}" x2="${pO2.x}" y2="${pO2.y}" class="diagram-aux" />
+            <circle cx="${cx}" cy="${cy}" r="3.8" class="diagram-dot" />
+            <text x="${cx + 7}" y="${cy - 6}" class="diagram-label">O</text>
+            <text x="${rOuterLabel.x + 5}" y="${rOuterLabel.y - 5}" class="diagram-side">R=${R}</text>
+            <text x="${rInnerLabel.x + 5}" y="${rInnerLabel.y + 5}" class="diagram-side">r=${r}</text>
+            <text x="${angleLabel.x - 14}" y="${angleLabel.y + 5}" class="diagram-side">${angle}°</text>
+        `;
+        return svgFrame(content);
+    }
+
+    function svgCylinder(q) {
+        const r = q.diagram.rText;
+        const h = q.diagram.hText;
+        const content = `
+            <ellipse cx="180" cy="75" rx="70" ry="18" class="diagram-line" />
+            <ellipse cx="180" cy="195" rx="70" ry="18" class="diagram-line" />
+            <rect x="110" y="75" width="140" height="120" fill="rgba(14,116,144,0.08)" stroke="none" />
+            <line x1="110" y1="75" x2="110" y2="195" class="diagram-line" />
+            <line x1="250" y1="75" x2="250" y2="195" class="diagram-line" />
+            <line x1="180" y1="75" x2="250" y2="75" class="diagram-aux" />
+            <line x1="262" y1="75" x2="262" y2="195" class="diagram-aux" />
+            <text x="256" y="71" class="diagram-side">r=${r}</text>
+            <text x="268" y="141" class="diagram-side">h=${h}</text>
+        `;
+        return svgFrame(content);
+    }
+
+    function renderDiagram(q) {
+        const el = document.getElementById('diagramContainer');
+        if (q.type === 'arc') el.innerHTML = svgCircleArc(q);
+        else if (q.type === 'sector') el.innerHTML = svgSector(q);
+        else if (q.type === 'ring-sector') el.innerHTML = svgRingSector(q);
+        else el.innerHTML = svgCylinder(q);
+    }
+
+    function makeArcQuestion() {
+        let variants = ['circumference', 'circumference', 'findRadius', 'findDiameter', 'semicirclePerim', 'wheelRev', 'arc', 'arc', 'arc', 'angle', 'revolution'];
+        let mode = pick(variants.filter(m => m !== state.lastQuestionMode));
+        state.lastQuestionMode = mode;
+
+        if (mode === 'circumference') {
+            const dOptions = [6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 18, 20, 21, 22, 24, 26, 28, 30];
+            const useRadius = pick([true, false]);
+            const d = pick(dOptions);
+            const r = d / 2;
+            const ans = Math.PI * d;
+            const text = useRadius
+                ? `Find the circumference of a circle with radius ${r} cm. Give your answer in terms of π.`
+                : `Find the circumference of a circle with diameter ${d} cm. Give your answer in terms of π.`;
+            const steps = useRadius
+                ? [`C = 2πr`, `= 2π × ${r}`, `= ${formatNum(ans / Math.PI)}π cm`]
+                : [`C = πd`, `= π × ${d}`, `= ${formatNum(ans / Math.PI)}π cm`];
+            return {
+                worksheet: 'arc',
+                type: 'arc',
+                text,
+                answer: ans,
+                expected: `${formatNum(ans / Math.PI)}π cm`,
+                formula: 'C = πd  or  C = 2πr',
+                requirePi: true,
+                diagram: { r, angle: 360, showDiam: Math.random() < 0.3 },
+                steps
+            };
+        }
+
+        if (mode === 'findRadius') {
+            const circumOptions = [10, 12, 14, 15, 16, 18, 20, 21, 24, 28, 30, 35, 36, 40, 42, 44, 48, 50, 54, 56, 60];
+            const C_coeff = pick(circumOptions);
+            const C = C_coeff * Math.PI;
+            const r = C / (2 * Math.PI);
+            return {
+                worksheet: 'arc',
+                type: 'arc',
+                text: `The circumference of a circle is ${C_coeff}π cm. Find its radius.`,
+                answer: r,
+                expected: `${formatNum(r)} cm`,
+                formula: 'C = 2πr',
+                requirePi: false,
+                diagram: { r: Math.min(15, Math.max(5, Math.round(r))), angle: 360 },
+                steps: [`C = 2πr`, `${C_coeff}π = 2πr`, `r = ${C_coeff}π ÷ 2π`, `r = ${formatNum(r)} cm`]
+            };
+        }
+
+        if (mode === 'findDiameter') {
+            const circOptions = [20, 25, 30, 35, 40, 42, 44, 50, 60, 63, 70, 80, 100, 120, 150];
+            const C_approx = pick(circOptions);
+            const d = C_approx / Math.PI;
+            const r = d / 2;
+            return {
+                worksheet: 'arc',
+                type: 'arc',
+                text: `The circumference of a circle is ${C_approx} cm. Find its diameter. (Give answer correct to 3 s.f.)`,
+                answer: d,
+                expected: `${formatNum(d)} cm`,
+                formula: 'C = πd',
+                requirePi: false,
+                diagram: { r: Math.min(15, Math.max(5, Math.round(r))), angle: 360 },
+                steps: [`C = πd`, `${C_approx} = πd`, `d = ${C_approx} ÷ π`, `d = ${formatNum(d)} cm`]
+            };
+        }
+
+        if (mode === 'semicirclePerim') {
+            const dOptions = [10, 12, 14, 16, 18, 20, 22, 24, 28, 30];
+            const d = pick(dOptions);
+            const r = d / 2;
+            const perim = Math.PI * r + d;
+            return {
+                worksheet: 'arc',
+                type: 'arc',
+                text: `A semicircle has diameter ${d} cm. Find its perimeter (curved arc + straight diameter). Give the answer in terms of π.`,
+                answer: perim,
+                expected: `(${formatNum(r)}π + ${d}) cm`,
+                formula: 'Perimeter of semicircle = πr + d',
+                requirePi: true,
+                diagram: { r, angle: 180 },
+                steps: [`r = d ÷ 2 = ${d} ÷ 2 = ${r} cm`, `Perimeter = πr + d`, `= π × ${r} + ${d}`, `= (${formatNum(r)}π + ${d}) cm`]
+            };
+        }
+
+        if (mode === 'wheelRev') {
+            const rOptions = [12, 15, 18, 20, 21, 25, 28, 30, 35, 40, 42, 45, 50];
+            const revOptions = [5, 10, 15, 20, 25, 30, 40, 50, 60, 75, 100];
+            const r = pick(rOptions);
+            const revs = pick(revOptions);
+            const dist = revs * 2 * Math.PI * r;
+            const distCm = Math.round(dist);
+            return {
+                worksheet: 'arc',
+                type: 'arc',
+                text: `A wheel has radius ${r} cm. When it makes ${revs} revolutions, how far does it travel? Give answer in terms of π.`,
+                answer: dist,
+                expected: `${formatNum(dist / Math.PI)}π cm`,
+                formula: 'distance = revolutions × 2πr',
+                requirePi: true,
+                diagram: { r, angle: 360, showDiam: Math.random() < 0.3 },
+                steps: [`distance = revolutions × 2πr`, `= ${revs} × 2π × ${r}`, `= ${formatNum(dist / Math.PI)}π cm`]
+            };
+        }
+
+        if (mode === 'arc') {
+            const rOptions = [3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20];
+            const angleOptions = [30, 40, 45, 50, 60, 72, 75, 80, 90, 100, 105, 120, 130, 135, 144, 150, 160, 180, 210, 225, 240, 270, 288, 300, 330];
+            const r = pick(rOptions);
+            const angle = pick(angleOptions);
+            const ans = (angle / 360) * 2 * Math.PI * r;
+            return {
+                worksheet: 'arc',
+                type: 'arc',
+                text: `In a circle of radius ${r} cm, find the length of the arc subtending ${angle}°. Give your answer in terms of π.`,
+                answer: ans,
+                expected: `${formatNum(ans / Math.PI)}π cm`,
+                formula: 'arc = (theta/360) × 2πr',
+                requirePi: true,
+                diagram: { r, angle },
+                steps: [`arc = (θ/360) × 2πr`, `= (${angle}/360) × 2π × ${r}`, `= ${formatNum(ans / Math.PI)}π cm`]
+            };
+        }
+
+        if (mode === 'angle') {
+            const rOptions = [5, 6, 7, 8, 9, 10, 12, 14, 15, 18, 20];
+            const r = pick(rOptions);
+            const coeffNums = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 15, 16, 18, 20, 21, 24, 25];
+            const coeffDens = [1, 2, 3, 4, 6];
+            const coeffNum = pick(coeffNums);
+            const coeffDen = pick(coeffDens);
+            const arc = (coeffNum / coeffDen) * Math.PI;
+            const ang = (360 * arc) / (2 * Math.PI * r);
+            if (ang < 10 || ang > 350) return makeArcQuestion();
+            return {
+                worksheet: 'arc',
+                type: 'arc',
+                text: `A circle has radius ${r} cm and an arc length of ${formatNum(arc / Math.PI)}π cm. Find the angle at the centre.`,
+                answer: ang,
+                expected: `${formatNum(ang)}°`,
+                formula: 'arc = (theta/360) × 2πr',
+                requirePi: false,
+                diagram: { r, angle: Math.max(25, Math.min(330, Math.round(ang))) },
+                steps: [`arc = (θ/360) × 2πr`, `${formatNum(arc / Math.PI)}π = (θ/360) × 2π × ${r}`, `θ = ${formatNum(arc / Math.PI)}π × 360 ÷ (2π × ${r})`, `θ = ${formatNum(ang)}°`]
+            };
+        }
+
+        const rOptions = [15, 20, 25, 28, 30, 32, 35, 36, 40, 42, 45, 50];
+        const distKmOptions = [0.6, 0.9, 1.0, 1.2, 1.5, 1.8, 2.0, 2.2, 2.5, 2.8, 3.0, 3.6, 4.0, 4.5, 5.0];
+        const r = pick(rOptions);
+        const distanceKm = pick(distKmOptions);
+        const distance = distanceKm * 100000;
+        const oneRev = 2 * Math.PI * r;
+        const rev = distance / oneRev;
+        return {
+            worksheet: 'arc',
+            type: 'arc',
+            text: `A tyre has radius ${r} cm. How many revolutions are needed to travel ${formatNum(distanceKm)} km?`,
+            answer: rev,
+            expected: `${formatNum(rev)} revolutions`,
+            formula: 'distance = revolutions × 2πr',
+            requirePi: true,
+            diagram: { r, angle: 180 },
+            steps: [`distance = ${distanceKm} km = ${formatNum(distance)} cm`, `1 revolution = 2πr = 2π × ${r} cm`, `revolutions = ${formatNum(distance)} ÷ (2π × ${r})`, `= ${formatNum(rev)} revolutions`]
+        };
+    }
+
+    function makeSectorQuestion() {
+        let modes = ['circleArea', 'circleArea', 'findRadiusFromArea', 'findDiamFromArea', 'semiArea', 'area', 'area', 'radius', 'angle', 'ring'];
+        let mode = pick(modes.filter(m => m !== state.lastQuestionMode));
+        state.lastQuestionMode = mode;
+
+        if (mode === 'circleArea') {
+            const rOptions = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20];
+            const useRadius = pick([true, false]);
+            const r = pick(rOptions);
+            const d = r * 2;
+            const ans = Math.PI * r * r;
+            const text = useRadius
+                ? `Find the area of a circle with radius ${r} cm. Give your answer in terms of π.`
+                : `Find the area of a circle with diameter ${d} cm. Give your answer in terms of π.`;
+            const steps = useRadius
+                ? [`A = πr²`, `= π × ${r}²`, `= ${formatNum(ans / Math.PI)}π cm²`]
+                : [`r = d ÷ 2 = ${d} ÷ 2 = ${r} cm`, `A = πr²`, `= π × ${r}²`, `= ${formatNum(ans / Math.PI)}π cm²`];
+            return {
+                worksheet: 'sector',
+                type: 'sector',
+                text,
+                answer: ans,
+                expected: `${formatNum(ans / Math.PI)}π cm²`,
+                formula: 'A = πr²',
+                requirePi: true,
+                diagram: { r, angle: 360, showDiam: Math.random() < 0.3 },
+                steps
+            };
+        }
+
+        if (mode === 'findRadiusFromArea') {
+            const areaPiOptions = [9, 16, 25, 36, 49, 64, 81, 100, 121, 144, 169, 196, 225, 256, 289, 324, 400];
+            const areaPi = pick(areaPiOptions);
+            const r = Math.sqrt(areaPi);
+            return {
+                worksheet: 'sector',
+                type: 'sector',
+                text: `The area of a circle is ${areaPi}π cm². Find its radius.`,
+                answer: r,
+                expected: `${formatNum(r)} cm`,
+                formula: 'A = πr²',
+                requirePi: true,
+                diagram: { r: Math.min(12, Math.max(6, Math.round(r))), angle: 360 },
+                steps: [`A = πr²`, `${areaPi}π = πr²`, `r² = ${areaPi}`, `r = √${areaPi} = ${formatNum(r)} cm`]
+            };
+        }
+
+        if (mode === 'findDiamFromArea') {
+            const areaOptions = [50, 80, 100, 150, 200, 250, 300, 400, 500];
+            const A = pick(areaOptions);
+            const r = Math.sqrt(A / Math.PI);
+            const d = 2 * r;
+            return {
+                worksheet: 'sector',
+                type: 'sector',
+                text: `The area of a circle is ${A} cm². Find its diameter. (Give answer correct to 3 s.f.)`,
+                answer: d,
+                expected: `${formatNum(d)} cm`,
+                formula: 'A = πr²',
+                requirePi: false,
+                diagram: { r: Math.min(12, Math.max(5, Math.round(r))), angle: 360 },
+                steps: [`A = πr²`, `${A} = πr²`, `r² = ${A}/π = ${formatNum(A / Math.PI)}`, `r = ${formatNum(r)} cm`, `d = 2r = 2 × ${formatNum(r)} = ${formatNum(d)} cm`]
+            };
+        }
+
+        if (mode === 'semiArea') {
+            const dOptions = [8, 10, 12, 14, 16, 18, 20, 22, 24, 28, 30];
+            const d = pick(dOptions);
+            const r = d / 2;
+            const ans = 0.5 * Math.PI * r * r;
+            return {
+                worksheet: 'sector',
+                type: 'sector',
+                text: `Find the area of a semicircle with diameter ${d} cm. Give your answer in terms of π.`,
+                answer: ans,
+                expected: `${formatNum(ans / Math.PI)}π cm²`,
+                formula: 'A = ½πr²',
+                requirePi: true,
+                diagram: { r, angle: 180 },
+                steps: [`r = d ÷ 2 = ${d} ÷ 2 = ${r} cm`, `A = ½πr²`, `= ½ × π × ${r}²`, `= ${formatNum(ans / Math.PI)}π cm²`]
+            };
+        }
+
+        if (mode === 'area') {
+            const rOptions = [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20];
+            const angleOptions = [30, 40, 45, 50, 60, 72, 75, 80, 90, 100, 105, 120, 130, 135, 144, 150, 160, 180, 210, 225, 240, 270, 300];
+            const r = pick(rOptions);
+            const angle = pick(angleOptions);
+            const ans = (angle / 360) * Math.PI * r * r;
+            return {
+                worksheet: 'sector',
+                type: 'sector',
+                text: `Find the area of a sector with radius ${r} cm and angle ${angle}°. Give your answer in terms of π.`,
+                answer: ans,
+                expected: `${formatNum(ans / Math.PI)}π cm²`,
+                formula: 'A = (theta/360) × πr²',
+                requirePi: true,
+                diagram: { r, angle },
+                steps: [`A = (θ/360) × πr²`, `= (${angle}/360) × π × ${r}²`, `= ${formatNum(angle / 360)} × ${r * r}π`, `= ${formatNum(ans / Math.PI)}π cm²`]
+            };
+        }
+
+        if (mode === 'radius') {
+            const angleOptions = [40, 50, 60, 72, 80, 90, 100, 120, 135, 144, 150, 180, 210, 216, 240, 270];
+            const areaPiOptions = [8, 12, 15, 18, 20, 24, 27, 30, 32, 36, 40, 45, 48, 50, 54, 60, 63, 72, 75, 80, 90];
+            const angle = pick(angleOptions);
+            const areaPi = pick(areaPiOptions);
+            const r2 = (areaPi * 360) / angle;
+            const r = Math.sqrt(r2);
+            if (r < 3 || r > 25) return makeSectorQuestion();
+            return {
+                worksheet: 'sector',
+                type: 'sector',
+                text: `The area of a sector is ${areaPi}π cm² and the angle is ${angle}°. Find the radius (to 2 d.p.).`,
+                answer: r,
+                expected: `${formatNum(r)} cm`,
+                formula: 'A = (theta/360) × πr²',
+                requirePi: true,
+                diagram: { r: Math.min(12, Math.max(7, Math.round(r))), angle },
+                steps: [`A = (θ/360) × πr²`, `${areaPi}π = (${angle}/360) × πr²`, `r² = ${areaPi} × 360 ÷ ${angle} = ${formatNum(r2)}`, `r = √${formatNum(r2)} = ${formatNum(r)} cm`]
+            };
+        }
+
+        if (mode === 'angle') {
+            const rOptions = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20];
+            const areaPiOptions = [8, 12, 15, 18, 20, 24, 28, 30, 32, 36, 40, 48, 50, 54, 56, 63, 72, 80, 90, 98, 100];
+            const r = pick(rOptions);
+            const areaPi = pick(areaPiOptions);
+            const theta = (360 * areaPi) / (r * r);
+            if (theta < 15 || theta > 350) return makeSectorQuestion();
+            return {
+                worksheet: 'sector',
+                type: 'sector',
+                text: `A sector has radius ${r} cm and area ${areaPi}π cm². Find the angle of the sector.`,
+                answer: theta,
+                expected: `${formatNum(theta)}°`,
+                formula: 'A = (theta/360) × πr²',
+                requirePi: true,
+                diagram: { r, angle: Math.max(20, Math.min(330, Math.round(theta))) },
+                steps: [`A = (θ/360) × πr²`, `${areaPi}π = (θ/360) × π × ${r}²`, `θ = ${areaPi} × 360 ÷ ${r * r}`, `θ = ${formatNum(theta)}°`]
+            };
+        }
+
+        const ROpts = [10, 11, 12, 13, 14, 15, 16, 18, 20];
+        const R = pick(ROpts);
+        const r = randomInt(3, Math.max(4, R - 4));
+        const angleOptions = [40, 50, 60, 72, 80, 90, 100, 120, 135, 150, 160, 180, 200, 240, 270];
+        const angle = pick(angleOptions);
+        const ans = (angle / 360) * Math.PI * (R * R - r * r);
+        return {
+            worksheet: 'sector',
+            type: 'ring-sector',
+            text: `Find the area of the shaded ring sector with outer radius ${R} cm, inner radius ${r} cm, and angle ${angle}°. Give answer in terms of π.`,
+            answer: ans,
+            expected: `${formatNum(ans / Math.PI)}π cm²`,
+            formula: 'A = (theta/360) × π(R²-r²)',
+            requirePi: true,
+            diagram: { R, r, angle },
+            steps: [`A = (θ/360) × π(R² − r²)`, `= (${angle}/360) × π × (${R}² − ${r}²)`, `= (${angle}/360) × π × ${R * R - r * r}`, `= ${formatNum(ans / Math.PI)}π cm²`]
+        };
+    }
+
+    function makeVolumeQuestion() {
+        let modes = ['direct', 'findr', 'findh', 'transfer', 'recast', 'ratio'];
+        let mode = pick(modes.filter(m => m !== state.lastQuestionMode));
+        state.lastQuestionMode = mode;
+
+        if (mode === 'direct') {
+            const rOptions = [2, 3, 4, 5, 5.5, 6, 6.5, 7, 7.5, 8, 9, 10];
+            const hOptions = [3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20];
+            const r = pick(rOptions);
+            const h = pick(hOptions);
+            const ans = Math.PI * r * r * h;
+            return {
+                worksheet: 'volume',
+                type: 'cylinder',
+                text: `Find the volume of a circular cylinder with radius ${r} cm and height ${h} cm. Give your answer in terms of π.`,
+                answer: ans,
+                expected: `${formatNum(ans / Math.PI)}π cm³`,
+                formula: 'V = πr²h',
+                requirePi: true,
+                diagram: { rText: r, hText: h },
+                steps: [`V = πr²h`, `= π × ${r}² × ${h}`, `= ${formatNum(r * r * h)}π cm³`]
+            };
+        }
+
+        if (mode === 'findr') {
+            const hOptions = [4, 5, 6, 8, 10, 12, 15, 16, 20];
+            const rSeedOptions = [2, 3, 4, 5, 6, 7, 8, 9, 10];
+            const h = pick(hOptions);
+            const rSeed = pick(rSeedOptions);
+            const V = Math.PI * rSeed * rSeed * h;
+            const r = Math.sqrt(V / (Math.PI * h));
+            return {
+                worksheet: 'volume',
+                type: 'cylinder',
+                text: `A cylinder has volume ${formatNum(V / Math.PI)}π cm³ and height ${h} cm. Find its radius.`,
+                answer: r,
+                expected: `${formatNum(r)} cm`,
+                formula: 'V = πr²h',
+                requirePi: true,
+                diagram: { rText: 'x', hText: h },
+                steps: [`V = πr²h`, `${formatNum(V / Math.PI)}π = πr² × ${h}`, `r² = ${formatNum(V / Math.PI)} ÷ ${h} = ${rSeed * rSeed}`, `r = √${rSeed * rSeed} = ${formatNum(r)} cm`]
+            };
+        }
+
+        if (mode === 'findh') {
+            const rOptions = [2, 3, 4, 5, 6, 7, 8, 9];
+            const hSeedOptions = [3, 4, 5, 6, 8, 9, 10, 12, 14, 15];
+            const r = pick(rOptions);
+            const hSeed = pick(hSeedOptions);
+            const V = Math.PI * r * r * hSeed;
+            const h = V / (Math.PI * r * r);
+            return {
+                worksheet: 'volume',
+                type: 'cylinder',
+                text: `A cylinder has radius ${r} cm and volume ${formatNum(V / Math.PI)}π cm³. Find the height.`,
+                answer: h,
+                expected: `${formatNum(h)} cm`,
+                formula: 'V = πr²h',
+                requirePi: true,
+                diagram: { rText: r, hText: 'x' },
+                steps: [`V = πr²h`, `${formatNum(V / Math.PI)}π = π × ${r}² × h`, `h = ${formatNum(V / Math.PI)} ÷ ${r * r}`, `h = ${formatNum(h)} cm`]
+            };
+        }
+
+        if (mode === 'transfer') {
+            const r1Options = [2, 3, 4, 5, 6];
+            const h1Options = [6, 8, 10, 12, 14, 15, 16];
+            const r2Options = [3, 4, 5, 6, 8, 10, 12];
+            const r1 = pick(r1Options);
+            const h1 = pick(h1Options);
+            const r2 = pick(r2Options.filter(r => r > r1));
+            const V = Math.PI * r1 * r1 * h1;
+            const depth = V / (Math.PI * r2 * r2);
+            return {
+                worksheet: 'volume',
+                type: 'cylinder',
+                text: `A can of radius ${r1} cm and height ${h1} cm is full of drink. It is poured into a cylindrical glass of radius ${r2} cm. Find the drink depth in the glass (to 2 d.p.).`,
+                answer: depth,
+                expected: `${formatNum(depth)} cm`,
+                formula: 'volume before = volume after',
+                requirePi: true,
+                diagram: { rText: r2, hText: 'depth' },
+                steps: [`V₁ = πr₁²h₁ = π × ${r1}² × ${h1} = ${r1 * r1 * h1}π cm³`, `V₁ = V₂ (same liquid)`, `π × ${r2}² × depth = ${r1 * r1 * h1}π`, `depth = ${r1 * r1 * h1} ÷ ${r2 * r2} = ${formatNum(depth)} cm`]
+            };
+        }
+
+        if (mode === 'recast') {
+            const cylDOptions = [10, 12, 14, 16, 18, 20, 22, 24, 28, 30];
+            const cylHOptions = [5, 6, 7, 8, 9, 10, 12, 14];
+            const cubHOptions = [6, 8, 9, 10, 12, 14, 15, 16];
+            const cylD = pick(cylDOptions);
+            const cylH = pick(cylHOptions);
+            const cubH = pick(cubHOptions);
+            const cylR = cylD / 2;
+            const cylV = Math.PI * cylR * cylR * cylH;
+            const baseSide = Math.sqrt(cylV / cubH);
+            return {
+                worksheet: 'volume',
+                type: 'cylinder',
+                text: `A metal cylinder of diameter ${cylD} cm and height ${cylH} cm is melted and recast into a cuboid with square base and height ${cubH} cm. Find the side length of the square base.`,
+                answer: baseSide,
+                expected: `${formatNum(baseSide)} cm`,
+                formula: 'volume of original solid = volume of new solid',
+                requirePi: true,
+                diagram: { rText: cylR, hText: cylH },
+                steps: [`r = d ÷ 2 = ${cylD} ÷ 2 = ${cylR} cm`, `V_cylinder = πr²h = π × ${cylR}² × ${cylH} = ${cylR * cylR * cylH}π cm³`, `side² × ${cubH} = ${cylR * cylR * cylH}π`, `side² = ${formatNum(cylR * cylR * cylH * Math.PI / cubH)}`, `side = ${formatNum(baseSide)} cm`]
+            };
+        }
+
+        const r1 = pick([3, 4, 5, 6, 7]);
+        const h1 = pick([8, 10, 12, 14, 15, 16, 20]);
+        const r2 = pick([4, 5, 6, 7, 8, 10]);
+        const h2 = pick([5, 6, 8, 10, 12]);
+        const ratio = (Math.PI * r1 * r1 * h1) / (Math.PI * r2 * r2 * h2);
+        return {
+            worksheet: 'volume',
+            type: 'cylinder',
+            text: `Cylinder A has radius ${r1} cm and height ${h1} cm. Cylinder B has radius ${r2} cm and height ${h2} cm. Find the ratio of volume A to volume B (simplify if possible).`,
+            answer: ratio,
+            expected: `${formatNum(ratio)}:1 or ${formatNum(1 / ratio)}:1 (or equivalent fraction)`,
+            formula: 'V₁:V₂ = (π r₁²h₁):(π r₂²h₂) = (r₁²h₁):(r₂²h₂)',
+            requirePi: false,
+            diagram: { rText: r1, hText: h1 },
+            steps: [`V_A = πr₁²h₁ = π × ${r1}² × ${h1} = ${r1 * r1 * h1}π cm³`, `V_B = πr₂²h₂ = π × ${r2}² × ${h2} = ${r2 * r2 * h2}π cm³`, `V_A : V_B = ${r1 * r1 * h1} : ${r2 * r2 * h2}`, `= ${formatNum(ratio)} : 1`]
+        };
+    }
+
+    function makeSurfaceQuestion() {
+        let modes = ['tsa', 'csa', 'findh', 'findr', 'open'];
+        let mode = pick(modes.filter(m => m !== state.lastQuestionMode));
+        state.lastQuestionMode = mode;
+
+        if (mode === 'tsa') {
+            const rOptions = [2, 3, 4, 5, 5.5, 6, 7, 8, 9, 10];
+            const hOptions = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20];
+            const r = pick(rOptions);
+            const h = pick(hOptions);
+            const ans = 2 * Math.PI * r * h + 2 * Math.PI * r * r;
+            return {
+                worksheet: 'surface',
+                type: 'cylinder',
+                text: `Find the total surface area of a cylinder with radius ${r} cm and height ${h} cm. Give your answer in terms of π.`,
+                answer: ans,
+                expected: `${formatNum(ans / Math.PI)}π cm²`,
+                formula: 'TSA = 2πrh + 2πr²',
+                requirePi: true,
+                diagram: { rText: r, hText: h },
+                steps: [`TSA = 2πrh + 2πr²`, `= 2π × ${r} × ${h} + 2π × ${r}²`, `= ${formatNum(2 * r * h)}π + ${formatNum(2 * r * r)}π`, `= ${formatNum(ans / Math.PI)}π cm²`]
+            };
+        }
+
+        if (mode === 'csa') {
+            const rOptions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 12];
+            const hOptions = [5, 6, 8, 9, 10, 12, 14, 15, 16, 18, 20];
+            const r = pick(rOptions);
+            const h = pick(hOptions);
+            const ans = 2 * Math.PI * r * h;
+            return {
+                worksheet: 'surface',
+                type: 'cylinder',
+                text: `Find the curved surface area of a cylinder with radius ${r} cm and height ${h} cm. Give your answer in terms of π.`,
+                answer: ans,
+                expected: `${formatNum(ans / Math.PI)}π cm²`,
+                formula: 'CSA = 2πrh',
+                requirePi: true,
+                diagram: { rText: r, hText: h },
+                steps: [`CSA = 2πrh`, `= 2π × ${r} × ${h}`, `= ${formatNum(ans / Math.PI)}π cm²`]
+            };
+        }
+
+        if (mode === 'findh') {
+            const rOptions = [2, 3, 4, 5, 6, 7, 8, 9];
+            const hSeedOptions = [4, 6, 8, 9, 10, 12, 14, 15, 16, 18, 20];
+            const r = pick(rOptions);
+            const hSeed = pick(hSeedOptions);
+            const csa = 2 * Math.PI * r * hSeed;
+            const h = csa / (2 * Math.PI * r);
+            return {
+                worksheet: 'surface',
+                type: 'cylinder',
+                text: `The curved surface area of a cylinder is ${formatNum(csa / Math.PI)}π cm² and radius is ${r} cm. Find the height.`,
+                answer: h,
+                expected: `${formatNum(h)} cm`,
+                formula: 'CSA = 2πrh',
+                requirePi: true,
+                diagram: { rText: r, hText: 'x' },
+                steps: [`CSA = 2πrh`, `${formatNum(csa / Math.PI)}π = 2π × ${r} × h`, `h = ${formatNum(csa / Math.PI)} ÷ (2 × ${r})`, `h = ${formatNum(h)} cm`]
+            };
+        }
+
+        if (mode === 'open') {
+            const rOptions = [2, 3, 4, 5, 6, 7, 8, 9, 10];
+            const hOptions = [5, 6, 8, 10, 12, 14, 15, 16, 18, 20];
+            const r = pick(rOptions);
+            const h = pick(hOptions);
+            const ans = 2 * Math.PI * r * h + Math.PI * r * r;
+            return {
+                worksheet: 'surface',
+                type: 'cylinder',
+                text: `Find the surface area of an open-top cylinder (base included, no top) with radius ${r} cm and height ${h} cm. Give answer in terms of π.`,
+                answer: ans,
+                expected: `${formatNum(ans / Math.PI)}π cm²`,
+                formula: 'Open surface area = 2πrh + πr²',
+                requirePi: true,
+                diagram: { rText: r, hText: h },
+                steps: [`Area = 2πrh + πr²  (curved + 1 base)`, `= 2π × ${r} × ${h} + π × ${r}²`, `= ${formatNum(2 * r * h)}π + ${r * r}π`, `= ${formatNum(ans / Math.PI)}π cm²`]
+            };
+        }
+
+        const hOptions = [4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+        const rSeedOptions = [2, 3, 4, 5, 6, 7, 8, 9];
+        const h = pick(hOptions);
+        const rSeed = pick(rSeedOptions);
+        const tsa = 2 * Math.PI * rSeed * h + 2 * Math.PI * rSeed * rSeed;
+        const part = tsa / (2 * Math.PI);
+        const r = (-h + Math.sqrt(h * h + 4 * part)) / 2;
+        return {
+            worksheet: 'surface',
+            type: 'cylinder',
+            text: `A cylinder has total surface area ${formatNum(tsa / Math.PI)}π cm² and height ${h} cm. Find the radius (to 2 d.p.).`,
+            answer: r,
+            expected: `${formatNum(r)} cm`,
+            formula: 'TSA = 2πrh + 2πr²',
+            requirePi: true,
+            diagram: { rText: 'x', hText: h },
+            steps: [`TSA = 2πrh + 2πr²`, `${formatNum(tsa / Math.PI)}π = 2πr × ${h} + 2πr²`, `Divide by π: ${formatNum(tsa / Math.PI)} = ${2 * h}r + 2r²`, `Solve quadratic: 2r² + ${2 * h}r − ${formatNum(tsa / Math.PI)} = 0`, `r = ${formatNum(r)} cm  (positive root)`]
+        };
+    }
+
+    function makeQuestion(ws) {
+        if (ws === 'mixed') {
+            const sub = pick(WORKSHEETS);
+            return makeQuestion(sub);
+        }
+        if (ws === 'arc') return makeArcQuestion();
+        if (ws === 'sector') return makeSectorQuestion();
+        if (ws === 'volume') return makeVolumeQuestion();
+        return makeSurfaceQuestion();
+    }
+
+    function clearPanels() {
+        document.getElementById('workInput').value = '';
+        state.hintStep = 0;
+        document.getElementById('hintPanel').classList.add('hidden');
+        document.getElementById('hintText').textContent = '';
+        document.getElementById('hintProgress').textContent = '';
+        document.getElementById('hintScaffold').classList.add('hidden');
+        document.getElementById('hintScaffoldList').innerHTML = '';
+        document.getElementById('feedbackPanel').classList.add('hidden');
+        document.getElementById('feedbackChecklist').innerHTML = '';
+        document.getElementById('feedbackMethod').innerHTML = '';
+        document.getElementById('feedbackSummary').textContent = '';
+    }
+
+    function nextQuestion() {
+        if (state.runFinished) {
+            startWorksheet(state.currentWorksheet);
+            return;
+        }
+        if (state.questionNo >= MAX_Q) { showMenu(); return; }
+        state.questionNo++;
+        state.currentQuestion = makeQuestion(state.currentWorksheet);
+        state.isAnswered = false;
+        document.getElementById('workInput').removeAttribute('disabled');
+        document.getElementById('questionNo').textContent = state.questionNo;
+        document.getElementById('questionText').textContent = state.currentQuestion.text;
+        document.getElementById('inputGuide').textContent = 'Type your steps: formula, substitution, simplification, conclusion.';
+        document.getElementById('workInput').placeholder = getPlaceholder(state.currentQuestion);
+        renderDiagram(state.currentQuestion);
+        clearPanels();
+        document.getElementById('checkBtn').classList.remove('hidden');
+        document.getElementById('nextBtn').classList.add('hidden');
+        document.getElementById('nextBtn').textContent = 'Next Question';
+    }
+
+    function insertAtCursor(token) {
+        const input = document.getElementById('workInput');
+        const start = input.selectionStart || 0;
+        const end = input.selectionEnd || 0;
+        const val = input.value || '';
+        input.value = val.slice(0, start) + token + val.slice(end);
+        const caret = start + token.length;
+        input.focus();
+        input.setSelectionRange(caret, caret);
+    }
+
+    function insertPi() { insertAtCursor('π'); }
+    function insertPower() { insertAtCursor('²'); }
+    function insertCube() { insertAtCursor('³'); }
+
+    function hintLines(q) {
+        return [
+            `Start with the formula: ${q.formula}.`,
+            'Substitute all known values on a new line before simplifying.',
+            `Finish with a labeled conclusion matching the required form: ${q.expected}.`
+        ];
+    }
+
+    function showHint() {
+        const q = state.currentQuestion;
+        const lines = hintLines(q);
+        const idx = Math.min(state.hintStep, lines.length - 1);
+        document.getElementById('hintPanel').classList.remove('hidden');
+        document.getElementById('hintText').textContent = lines[idx];
+        document.getElementById('hintProgress').textContent = `Hint ${idx + 1}/${lines.length}`;
+        if (idx === lines.length - 1) {
+            document.getElementById('hintScaffold').classList.remove('hidden');
+            document.getElementById('hintScaffoldList').innerHTML = [
+                'Write formula with symbols first.',
+                'Substitute numbers and keep π until the final step unless asked for decimal.',
+                'State final answer with correct unit (cm, cm² or cm³).'
+            ].map((x) => `<li>${x}</li>`).join('');
+        }
+        if (state.hintStep < lines.length - 1) state.hintStep++;
+    }
+
+    function escapeHtml(s) {
+        return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
+
+    function extractLikelyAnswerExpression(workText) {
+        const lines = String(workText || '').split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+        if (lines.length === 0) return '';
+        const last = lines[lines.length - 1];
+        if (last.includes('=')) {
+            const part = last.split('=').pop();
+            return (part || '').trim();
+        }
+        return last;
+    }
+
+    function evaluateExpression(raw) {
+        if (!raw) return NaN;
+        let expr = raw.toLowerCase().replace(/\s+/g, '');
+        expr = expr.replace(/cm\^?2|cm\^?3|cm2|cm3|cm|m|revolutions?|degree|degrees|°/g, '');
+        expr = expr.replace(/π/g, 'pi').replace(/pi/g, 'Math.PI');
+        expr = expr.replace(/²/g, '^2').replace(/³/g, '^3').replace(/\^/g, '**');
+        expr = expr.replace(/(\d)(Math\.PI)/g, '$1*$2');
+        expr = expr.replace(/\)(Math\.PI)/g, ')*$1');
+        expr = expr.replace(/(\d)\(/g, '$1*(');
+        expr = expr.replace(/\)(\d)/g, ')*$1');
+        if (/[^0-9+\-*/().MathPI*]/.test(expr.replace(/Math\.PI/g, ''))) return NaN;
+        try {
+            const val = Function(`"use strict"; return (${expr});`)();
+            return Number.isFinite(val) ? val : NaN;
+        } catch (_) {
+            return NaN;
+        }
+    }
+
+    function getPlaceholder(q) {
+        const f = q.formula || '';
+        const ws = q.worksheet || '';
+        if (ws === 'surface') {
+            if (f.includes('TSA') || f.includes('2πrh + 2πr'))
+                return 'Example:\nTSA = 2πrh + 2πr²\n= 2π × 3 × 8 + 2π × 3²\n= 48π + 18π\n= 66π cm²';
+            if (f.includes('CSA') || f.includes('2πrh'))
+                return 'Example:\nCSA = 2πrh\n= 2π × 4 × 10\n= 80π cm²';
+            return 'Example:\nArea = 2πrh + πr²\n= 2π × 3 × 7 + π × 3²\n= 42π + 9π\n= 51π cm²';
+        }
+        if (ws === 'volume') {
+            return 'Example:\nV = πr²h\n= π × 4² × 10\n= 160π cm³';
+        }
+        if (ws === 'sector') {
+            if (f.includes('theta/360') || f.includes('(R²'))
+                return 'Example:\nA = (θ/360) × πr²\n= (120/360) × π × 9²\n= 27π cm²';
+            return 'Example:\nA = πr²\n= π × 6²\n= 36π cm²';
+        }
+        // arc worksheet
+        if (f.includes('theta/360') || f.includes('revolutions'))
+            return 'Example:\narc = (θ/360) × 2πr\n= (90/360) × 2π × 8\n= 4π cm';
+        return 'Example:\nC = 2πr\n= 2π × 5\n= 10π cm';
+    }
+
+    function getModelMethod(q) {
+        if (q.steps && q.steps.length) return q.steps;
+        return [
+            `Formula: ${q.formula}`,
+            'Substitute known values carefully, preserving units.',
+            `Final answer: ${q.expected}`
+        ];
+    }
+
+    function renderFeedback(type, summary, items, method) {
+        const panel = document.getElementById('feedbackPanel');
+        const badge = document.getElementById('feedbackBadge');
+        panel.classList.remove('hidden');
+        badge.className = 'inline-flex items-center rounded-full px-3 py-1 text-xs font-black';
+        if (type === 'good') { badge.textContent = 'Correct'; badge.classList.add('bg-green-100', 'text-green-800'); }
+        else if (type === 'warn') { badge.textContent = 'Incomplete'; badge.classList.add('bg-amber-100', 'text-amber-800'); }
+        else { badge.textContent = 'Needs Fix'; badge.classList.add('bg-red-100', 'text-red-800'); }
+
+        document.getElementById('feedbackSummary').textContent = summary;
+        document.getElementById('feedbackChecklist').innerHTML = items.map((item) => {
+            const c = item.ok ? 'feedback-good' : (type === 'warn' ? 'feedback-warn' : 'feedback-bad');
+            return `<div class="rounded-xl border p-3 ${c}">
+                <div class="text-sm font-black text-slate-800">${escapeHtml(item.title)}</div>
+                <div class="mt-2 text-xs font-bold text-slate-600">Your input:</div>
+                <div class="text-sm font-semibold text-slate-800 break-words">${escapeHtml(item.yourInput || 'Blank')}</div>
+                <div class="mt-2 text-xs font-bold text-slate-600">Expected:</div>
+                <div class="text-sm font-semibold text-slate-800 break-words">${escapeHtml(item.expected)}</div>
+                <div class="mt-2 text-xs font-bold text-slate-600">Guidance:</div>
+                <div class="text-sm font-semibold text-slate-800">${escapeHtml(item.why)}</div>
+            </div>`;
+        }).join('');
+
+        document.getElementById('feedbackMethod').innerHTML = method.map((m) => `<li>${escapeHtml(m)}</li>`).join('');
+    }
+
+    function checkAnswer() {
+        if (state.isAnswered) return;
+        const q = state.currentQuestion;
+        const work = document.getElementById('workInput').value.trim();
+        const answerText = extractLikelyAnswerExpression(work);
+        const num = evaluateExpression(answerText);
+
+        if (!work) {
+            renderFeedback('warn', 'Your steps are empty. Start with formula, substitution, and conclusion.', [
+                { title: 'Step 1: Formula', ok: false, yourInput: '', expected: q.formula, why: 'Write the correct mensuration formula first.' },
+                { title: 'Step 2: Substitution', ok: false, yourInput: '', expected: 'Substitute values from the question.', why: 'Show where each number comes from.' },
+                { title: 'Step 3: Conclusion', ok: false, yourInput: '', expected: q.expected, why: 'State a labeled final answer with unit.' }
+            ], getModelMethod(q));
+            return;
+        }
+
+        const lower = work.toLowerCase();
+        const formulaOk = /\=/.test(work) && (lower.includes('pi') || work.includes('π') || lower.includes('theta') || lower.includes('volume') || lower.includes('surface'));
+        const piOk = q.requirePi ? (work.includes('π') || lower.includes('pi')) : true;
+        const answerOk = !isNaN(num) && closeEnough(num, q.answer);
+
+        if (formulaOk && piOk && answerOk) {
+            renderFeedback('good', `Excellent! Your method is correct. Answer: ${q.expected}`, [
+                { title: 'Step 1: Formula', ok: true, yourInput: work, expected: q.formula, why: 'Correct formula chosen.' },
+                { title: 'Step 2: Substitution', ok: true, yourInput: work, expected: 'Correct substitution and simplification', why: 'You showed method steps.' },
+                { title: 'Step 3: Conclusion', ok: true, yourInput: answerText, expected: q.expected, why: 'Final answer is correct.' }
+            ], getModelMethod(q));
+
+            const progressWorksheet = q.worksheet;
+            const subKey = keyFor(progressWorksheet);
+            const oldSub = parseInt(localStorage.getItem(subKey) || '0', 10);
+            localStorage.setItem(subKey, String(oldSub + 1));
+            const total = getTopicTotal();
+            localStorage.setItem(topicTotalKey(), String(total));
+            if (window && typeof window.__mq_increment === 'function') window.__mq_increment('mensuration', 1);
+            updateWorksheetTracker();
+            state.runScore++;
+            updateScorePill();
+        } else {
+            renderFeedback('bad', `Not yet — the correct answer is ${q.expected}. Read the guidance below and try again on a similar question.`, [
+                {
+                    title: 'Step 1: Formula',
+                    ok: formulaOk,
+                    yourInput: work,
+                    expected: q.formula,
+                    why: 'Begin with the exact formula before calculating.'
+                },
+                {
+                    title: 'Step 2: Use π clearly',
+                    ok: piOk,
+                    yourInput: work,
+                    expected: q.requirePi ? 'Keep π in working where requested.' : 'π use is optional here.',
+                    why: 'Tap Add π to insert the symbol quickly and avoid format errors.'
+                },
+                {
+                    title: 'Step 3: Final answer',
+                    ok: answerOk,
+                    yourInput: answerText || '(blank)',
+                    expected: q.expected,
+                    why: `The correct answer is ${q.expected}. Check your arithmetic and make sure units match.`
+                }
+            ], getModelMethod(q));
+        }
+
+        state.isAnswered = true;
+        document.getElementById('checkBtn').classList.add('hidden');
+        document.getElementById('nextBtn').classList.remove('hidden');
+
+        if (state.questionNo >= MAX_Q) {
+            showRunSummary();
+        }
+    }
+
+    window.addEventListener('storage', function (e) {
+        if (e.key && e.key.indexOf('mq_score_mensuration') === 0) updateWorksheetTracker();
+    });
+
+    window.onload = function () {
+        loadName();
+        updateWorksheetTracker();
+        updateScorePill();
+    };
+</script>
+</body>
+</html>
