@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trigonometric Ratios Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+            background: radial-gradient(circle at 20% 10%, #fdf4ff 0%, #ede9fe 35%, #ddd6fe 100%);
+            color: #0f172a;
+        }
+        .panel {
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(8px);
+        }
+        .worksheet-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .worksheet-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 18px 32px -16px rgba(109, 40, 217, 0.45);
+        }
+        .badge-done { background: #dcfce7; color: #166534; }
+        .badge-todo { background: #fef3c7; color: #92400e; }
+        .fade-in { animation: fadeIn 0.25s ease-out; }
+        .diagram-line { stroke: #0f172a; stroke-width: 2.5; fill: none; }
+        .diagram-label { fill: #0f172a; font-size: 14px; font-weight: 700; }
+        .diagram-side { fill: #6d28d9; font-size: 13px; font-weight: 800; }
+        .diagram-angle { fill: #be185d; font-size: 13px; font-weight: 800; }
+        .diagram-arc { stroke: #be185d; stroke-width: 2; fill: none; }
+        .diagram-right-mark { stroke: #e11d48; stroke-width: 2.2; fill: none; }
+        .diagram-opp { stroke: #7c3aed; stroke-width: 2.8; fill: none; }
+        .diagram-adj { stroke: #0e7490; stroke-width: 2.8; fill: none; }
+        .diagram-hyp { stroke: #b45309; stroke-width: 2.8; fill: none; }
+        .feedback-good { border-color: #86efac; background: #f0fdf4; }
+        .feedback-bad { border-color: #fca5a5; background: #fef2f2; }
+        .feedback-warn { border-color: #fcd34d; background: #fffbeb; }
+        .line-input {
+            resize: vertical;
+            min-height: 52px;
+            max-height: 200px;
+            line-height: 1.5;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+
+    <button onclick="window.location.href='index.html'" title="Back to Dashboard"
+        style="position:fixed;left:14px;top:14px;z-index:9999;padding:8px 12px;border-radius:10px;background:#ffffff;border:1px solid rgba(0,0,0,0.06);box-shadow:0 6px 18px rgba(0,0,0,0.06);font-weight:700;cursor:pointer">&larr; Dashboard</button>
+
+    <!-- MENU -->
+    <div id="menuView" class="max-w-6xl mx-auto fade-in">
+        <div class="text-center mb-8 mt-8 md:mt-0">
+            <h1 class="text-4xl md:text-5xl font-black tracking-tight text-violet-900">Trigonometric Ratios</h1>
+            <p class="text-violet-900/70 font-semibold mt-2">Four worksheets: sine, cosine, tangent, and applications</p>
+        </div>
+
+        <div class="panel rounded-3xl shadow-lg p-4 md:p-5 mb-7 flex flex-col md:flex-row md:items-center gap-3 md:gap-5">
+            <div class="font-bold text-slate-700">Student name</div>
+            <input id="studentName" type="text" placeholder="Enter your name"
+                class="flex-1 border-2 border-violet-100 focus:border-violet-400 rounded-xl px-4 py-2 outline-none font-semibold"
+                oninput="saveName()">
+            <div class="w-full md:w-auto text-sm font-bold text-slate-600">Total correct in Trigonometry: <span id="topicTotal" class="text-violet-800">0</span></div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5" id="worksheetGrid">
+            <button class="worksheet-card panel rounded-3xl p-5 text-left border-t-4 border-violet-500" onclick="startWorksheet('sine')">
+                <div class="flex items-center justify-between mb-2">
+                    <h2 class="font-black text-lg text-slate-800">Sine Ratio</h2>
+                    <span id="status-sine" class="text-xs font-bold px-3 py-1 rounded-full badge-todo">Not started</span>
+                </div>
+                <p class="text-sm text-slate-600 mb-4">Finding sin θ, using a calculator, finding angles, and solving for unknowns.</p>
+                <div class="text-sm font-bold text-slate-700 mb-2">Progress: <span id="count-sine">0</span></div>
+                <div class="h-2 bg-violet-100 rounded-full overflow-hidden">
+                    <div id="bar-sine" class="h-2 bg-gradient-to-r from-violet-400 to-violet-700" style="width:0%"></div>
+                </div>
+            </button>
+
+            <button class="worksheet-card panel rounded-3xl p-5 text-left border-t-4 border-rose-500" onclick="startWorksheet('cosine')">
+                <div class="flex items-center justify-between mb-2">
+                    <h2 class="font-black text-lg text-slate-800">Cosine Ratio</h2>
+                    <span id="status-cosine" class="text-xs font-bold px-3 py-1 rounded-full badge-todo">Not started</span>
+                </div>
+                <p class="text-sm text-slate-600 mb-4">Finding cos θ, using a calculator, finding angles, and solving for unknowns.</p>
+                <div class="text-sm font-bold text-slate-700 mb-2">Progress: <span id="count-cosine">0</span></div>
+                <div class="h-2 bg-rose-100 rounded-full overflow-hidden">
+                    <div id="bar-cosine" class="h-2 bg-gradient-to-r from-rose-400 to-rose-700" style="width:0%"></div>
+                </div>
+            </button>
+
+            <button class="worksheet-card panel rounded-3xl p-5 text-left border-t-4 border-amber-500" onclick="startWorksheet('tangent')">
+                <div class="flex items-center justify-between mb-2">
+                    <h2 class="font-black text-lg text-slate-800">Tangent Ratio</h2>
+                    <span id="status-tangent" class="text-xs font-bold px-3 py-1 rounded-full badge-todo">Not started</span>
+                </div>
+                <p class="text-sm text-slate-600 mb-4">Finding tan θ, using a calculator, finding angles, and solving for unknowns.</p>
+                <div class="text-sm font-bold text-slate-700 mb-2">Progress: <span id="count-tangent">0</span></div>
+                <div class="h-2 bg-amber-100 rounded-full overflow-hidden">
+                    <div id="bar-tangent" class="h-2 bg-gradient-to-r from-amber-400 to-amber-700" style="width:0%"></div>
+                </div>
+            </button>
+
+            <button class="worksheet-card panel rounded-3xl p-5 text-left border-t-4 border-cyan-500" onclick="startWorksheet('applications')">
+                <div class="flex items-center justify-between mb-2">
+                    <h2 class="font-black text-lg text-slate-800">Properties &amp; Applications</h2>
+                    <span id="status-applications" class="text-xs font-bold px-3 py-1 rounded-full badge-todo">Not started</span>
+                </div>
+                <p class="text-sm text-slate-600 mb-4">Properties of trig ratios, composite figures, and real-life problems.</p>
+                <div class="text-sm font-bold text-slate-700 mb-2">Progress: <span id="count-applications">0</span></div>
+                <div class="h-2 bg-cyan-100 rounded-full overflow-hidden">
+                    <div id="bar-applications" class="h-2 bg-gradient-to-r from-cyan-400 to-cyan-700" style="width:0%"></div>
+                </div>
+            </button>
+        </div>
+    </div>
+
+    <!-- QUIZ -->
+    <div id="quizView" class="hidden max-w-5xl mx-auto panel rounded-3xl shadow-2xl overflow-hidden fade-in">
+        <div class="bg-violet-700 text-white p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div>
+                <div class="text-sm uppercase tracking-widest font-bold opacity-80" id="quizWorksheetLabel">Sine Ratio</div>
+                <h2 class="text-2xl font-black">Trigonometric Ratios practice</h2>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="text-sm font-bold">Question <span id="questionNo">1</span>/10</div>
+                <button onclick="showMenu()" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-xl font-bold">Back</button>
+            </div>
+        </div>
+
+        <div class="p-5 md:p-8">
+            <div id="questionText" class="text-lg font-bold text-slate-800 mb-3"></div>
+            <div id="inputGuide" class="text-sm text-slate-500 mb-5">Write your full method: identify sides, write the trig ratio, substitute, then solve.</div>
+
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-5">
+                <div id="diagramContainer" class="w-full flex justify-center"></div>
+                <div class="text-xs text-slate-500 mt-2 font-semibold">Diagram not drawn to scale</div>
+            </div>
+
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Your work (typed steps)</label>
+                <textarea id="workInput" class="line-input w-full border-2 border-slate-200 rounded-xl p-3 outline-none focus:border-violet-400 font-bold"
+                    placeholder="Example:&#10;sin θ = opp/hyp&#10;sin θ = 5/13&#10;θ = sin⁻¹(5/13) = 22.6°"></textarea>
+
+                <div class="mt-3 flex flex-wrap gap-2">
+                    <button type="button" onclick="insertDeg()" class="px-4 py-2 rounded-xl border-2 border-violet-200 bg-violet-50 text-violet-900 font-black hover:bg-violet-100">Add °</button>
+                    <button type="button" onclick="insertInv('sin')" class="px-4 py-2 rounded-xl border-2 border-rose-200 bg-rose-50 text-rose-900 font-black hover:bg-rose-100">sin⁻¹</button>
+                    <button type="button" onclick="insertInv('cos')" class="px-4 py-2 rounded-xl border-2 border-amber-200 bg-amber-50 text-amber-900 font-black hover:bg-amber-100">cos⁻¹</button>
+                    <button type="button" onclick="insertInv('tan')" class="px-4 py-2 rounded-xl border-2 border-cyan-200 bg-cyan-50 text-cyan-900 font-black hover:bg-cyan-100">tan⁻¹</button>
+                    <button type="button" onclick="insertSqrt()" class="px-4 py-2 rounded-xl border-2 border-slate-200 bg-slate-50 text-slate-900 font-black hover:bg-slate-100">√</button>
+                    <button type="button" onclick="showHint()" class="px-4 py-2 rounded-xl border-2 border-amber-200 bg-amber-50 text-amber-900 font-black hover:bg-amber-100">Hint</button>
+                </div>
+            </div>
+
+            <div id="hintPanel" class="mt-4 hidden rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                <div class="text-xs uppercase tracking-wide font-black text-amber-800">Hint</div>
+                <div id="hintText" class="mt-2 text-sm font-semibold text-amber-900"></div>
+                <div id="hintProgress" class="mt-2 text-xs font-bold text-amber-800/80"></div>
+                <div id="hintScaffold" class="mt-3 hidden rounded-xl border border-amber-300 bg-white p-3">
+                    <div class="text-xs uppercase tracking-wide font-black text-amber-800">Scaffold</div>
+                    <ol id="hintScaffoldList" class="mt-2 list-decimal pl-5 text-sm font-semibold text-slate-800 space-y-1"></ol>
+                </div>
+            </div>
+
+            <div id="feedbackPanel" class="mt-5 hidden rounded-2xl border border-slate-200 bg-white p-4 md:p-5">
+                <div class="flex flex-wrap items-center gap-3">
+                    <span id="feedbackBadge" class="inline-flex items-center rounded-full px-3 py-1 text-xs font-black bg-slate-100 text-slate-700">Review</span>
+                    <p id="feedbackSummary" class="text-sm md:text-base font-bold text-slate-800"></p>
+                </div>
+                <div id="feedbackChecklist" class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3"></div>
+                <div class="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                    <div class="text-xs uppercase tracking-wide font-black text-slate-600">Model method</div>
+                    <ol id="feedbackMethod" class="mt-2 list-decimal pl-5 text-sm font-semibold text-slate-700 space-y-1"></ol>
+                </div>
+            </div>
+
+            <div class="mt-5 flex flex-wrap gap-3">
+                <button id="checkBtn" onclick="checkAnswer()" class="bg-violet-700 hover:bg-violet-800 text-white font-black px-8 py-3 rounded-xl">Check Answer</button>
+                <button id="nextBtn" onclick="nextQuestion()" class="hidden bg-slate-800 hover:bg-slate-900 text-white font-black px-8 py-3 rounded-xl">Next Question</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const WORKSHEETS = ['sine', 'cosine', 'tangent', 'applications'];
+    const MAX_Q = 10;
+    const TOPIC_GOAL = 200;
+    const SUBTOPIC_NAMES = {
+        sine: 'Sine Ratio',
+        cosine: 'Cosine Ratio',
+        tangent: 'Tangent Ratio',
+        applications: 'Properties & Applications'
+    };
+
+    const state = {
+        currentWorksheet: 'sine',
+        questionNo: 0,
+        currentQuestion: null,
+        isAnswered: false,
+        studentName: 'Student',
+        hintStep: 0,
+        lastMode: null
+    };
+
+    // ─── helpers ────────────────────────────────────────────────────────────
+    function keyFor(ws) { return `mq_score_trigonometry_${ws}`; }
+    function rnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+    function pick(arr) { return arr[rnd(0, arr.length - 1)]; }
+    function fmt(v, dp = 3) {
+        if (Number.isInteger(v)) return String(v);
+        return parseFloat(v.toFixed(dp)).toString();
+    }
+    function fmtDeg(v) { return fmt(v, 1); }
+
+    function loadName() {
+        const s = localStorage.getItem('hkdse_trig_username');
+        if (s) { state.studentName = s; document.getElementById('studentName').value = s; }
+    }
+    function saveName() {
+        const v = document.getElementById('studentName').value.trim();
+        state.studentName = v || 'Student';
+        if (v) localStorage.setItem('hkdse_trig_username', v);
+    }
+    function getTopicTotal() {
+        return WORKSHEETS.reduce((t, ws) => t + parseInt(localStorage.getItem(keyFor(ws)) || '0', 10), 0);
+    }
+    function updateWorksheetTracker() {
+        WORKSHEETS.forEach(ws => {
+            const count = parseInt(localStorage.getItem(keyFor(ws)) || '0', 10);
+            const el = id => document.getElementById(`${id}-${ws}`);
+            const status = el('status'), countEl = el('count'), barEl = el('bar');
+            if (countEl) countEl.textContent = count;
+            if (barEl) barEl.style.width = Math.min(100, Math.round(count / TOPIC_GOAL * 100)) + '%';
+            if (status) {
+                status.textContent = count > 0 ? 'Practised' : 'Not started';
+                status.className = `text-xs font-bold px-3 py-1 rounded-full ${count > 0 ? 'badge-done' : 'badge-todo'}`;
+            }
+        });
+        const total = getTopicTotal();
+        document.getElementById('topicTotal').textContent = total;
+        localStorage.setItem('mq_score_trigonometry', String(total));
+        if (window.__mq_increment) window.__mq_increment('trigonometry', 0);
+    }
+    function showMenu() {
+        document.getElementById('quizView').classList.add('hidden');
+        document.getElementById('menuView').classList.remove('hidden');
+        updateWorksheetTracker();
+    }
+    function startWorksheet(ws) {
+        saveName();
+        state.currentWorksheet = ws;
+        state.questionNo = 0;
+        state.isAnswered = false;
+        state.lastMode = null;
+        document.getElementById('quizWorksheetLabel').textContent = SUBTOPIC_NAMES[ws];
+        document.getElementById('menuView').classList.add('hidden');
+        document.getElementById('quizView').classList.remove('hidden');
+        nextQuestion();
+    }
+
+    // ─── symbol insertion ────────────────────────────────────────────────────
+    function insertAt(token) {
+        const el = document.getElementById('workInput');
+        const s = el.selectionStart || 0, e = el.selectionEnd || 0;
+        el.value = el.value.slice(0, s) + token + el.value.slice(e);
+        el.selectionStart = el.selectionEnd = s + token.length;
+        el.focus();
+    }
+    function insertDeg()    { insertAt('°'); }
+    function insertInv(fn)  { insertAt(fn + '⁻¹('); }
+    function insertSqrt()   { insertAt('√'); }
+
+    // ─── diagram drawing ─────────────────────────────────────────────────────
+    function drawRightMark(x, y, size, xd, yd) {
+        return `<path d="M ${x+xd*size} ${y} L ${x+xd*size} ${y+yd*size} L ${x} ${y+yd*size}" class="diagram-right-mark"/>`;
+    }
+
+    // Generic right-angled triangle with labelled sides
+    // orientation: 'right-angle-bottom-right' (default), 'right-angle-bottom-left'
+    function svgTrigTriangle(q) {
+        const {labelA, labelB, labelC, opp, adj, hyp, angle, orientation} = q.diagram;
+        // A=bottom-left, B=bottom-right (right angle), C=top-right
+        const A={x:50,y:200}, B={x:290,y:200}, C={x:290,y:55};
+        const rmk = drawRightMark(B.x, B.y, 15, -1, -1);
+        // angle arc at A
+        const arcR = 30;
+        const arcEnd = {x: A.x + arcR * Math.cos(Math.atan2(C.y-A.y, C.x-A.x)), y: A.y + arcR * Math.sin(Math.atan2(C.y-A.y, C.x-A.x))};
+        const arc = `<path d="M ${A.x+arcR} ${A.y} A ${arcR} ${arcR} 0 0 0 ${arcEnd.x} ${arcEnd.y}" class="diagram-arc"/>`;
+        return `<svg viewBox="0 0 360 260" class="w-full max-w-xl h-auto">
+            <line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" class="diagram-adj"/>
+            <line x1="${B.x}" y1="${B.y}" x2="${C.x}" y2="${C.y}" class="diagram-opp"/>
+            <line x1="${A.x}" y1="${A.y}" x2="${C.x}" y2="${C.y}" class="diagram-hyp"/>
+            ${rmk}${arc}
+            <text x="${A.x-14}" y="${A.y+6}" class="diagram-label">${labelA||'A'}</text>
+            <text x="${B.x+6}" y="${B.y+6}" class="diagram-label">${labelB||'B'}</text>
+            <text x="${C.x+6}" y="${C.y-4}" class="diagram-label">${labelC||'C'}</text>
+            <text x="${A.x+40}" y="${A.y-8}" class="diagram-angle">${angle||'θ'}</text>
+            <text x="165" y="220" class="diagram-side">${adj||'adj'}</text>
+            <text x="300" y="135" class="diagram-side">${opp||'opp'}</text>
+            <text x="175" y="118" class="diagram-side">${hyp||'hyp'}</text>
+        </svg>`;
+    }
+
+    // Triangle with a perpendicular from vertex to opposite side
+    function svgComposite(q) {
+        const {AB, BC, CD, BD, AD, topLabel, btmLeft, btmRight, perp} = q.diagram;
+        return `<svg viewBox="0 0 400 260" class="w-full max-w-xl h-auto">
+            <line x1="50" y1="210" x2="350" y2="210" class="diagram-line"/>
+            <line x1="50" y1="210" x2="200" y2="50" class="diagram-line"/>
+            <line x1="350" y1="210" x2="200" y2="50" class="diagram-line"/>
+            <line x1="200" y1="50" x2="200" y2="210" class="diagram-line" stroke-dasharray="5 4" stroke="#64748b"/>
+            ${drawRightMark(200,210,14,1,-1)}
+            <text x="34" y="226" class="diagram-label">${btmLeft||'A'}</text>
+            <text x="354" y="226" class="diagram-label">${btmRight||'C'}</text>
+            <text x="196" y="44" class="diagram-label">${topLabel||'B'}</text>
+            <text x="206" y="226" class="diagram-label">${perp||'D'}</text>
+            ${AB ? `<text x="115" y="122" class="diagram-side">${AB}</text>` : ''}
+            ${BC ? `<text x="285" y="122" class="diagram-side">${BC}</text>` : ''}
+            ${BD ? `<text x="210" y="135" class="diagram-side">${BD}</text>` : ''}
+            ${CD ? `<text x="285" y="226" class="diagram-side">${CD}</text>` : ''}
+            ${AD ? `<text x="115" y="226" class="diagram-side">${AD}</text>` : ''}
+        </svg>`;
+    }
+
+    // Elevation/depression diagram
+    function svgElevation(q) {
+        const {dist, height, angle, kind} = q.diagram;
+        if (kind === 'elevation') {
+            return `<svg viewBox="0 0 400 260" class="w-full max-w-xl h-auto">
+                <line x1="30" y1="210" x2="370" y2="210" class="diagram-line"/>
+                <line x1="70" y1="210" x2="340" y2="60" class="diagram-line"/>
+                <line x1="340" y1="60" x2="340" y2="210" class="diagram-line"/>
+                ${drawRightMark(340,210,14,-1,-1)}
+                <path d="M 110 210 A 40 40 0 0 1 ${70+40*Math.cos(Math.atan2(60-210,340-70))} ${210+40*Math.sin(Math.atan2(60-210,340-70))}" class="diagram-arc"/>
+                <text x="55" y="226" class="diagram-label">A</text>
+                <text x="344" y="226" class="diagram-label">B</text>
+                <text x="344" y="55" class="diagram-label">C</text>
+                <text x="118" y="204" class="diagram-angle">${angle||'θ'}</text>
+                <text x="190" y="226" class="diagram-side">${dist||'d'}</text>
+                <text x="350" y="138" class="diagram-side">${height||'h'}</text>
+                <text x="55" y="190" class="diagram-label" font-size="11" fill="#64748b">angle of elevation</text>
+            </svg>`;
+        }
+        // depression
+        return `<svg viewBox="0 0 400 260" class="w-full max-w-xl h-auto">
+            <line x1="30" y1="80" x2="370" y2="80" class="diagram-line" stroke-dasharray="5 4" stroke="#64748b"/>
+            <line x1="70" y1="80" x2="340" y2="210" class="diagram-line"/>
+            <line x1="340" y1="80" x2="340" y2="210" class="diagram-line"/>
+            ${drawRightMark(340,80,14,-1,1)}
+            <path d="M 110 80 A 35 35 0 0 0 ${70+35*Math.cos(Math.atan2(210-80,340-70))} ${80+35*Math.sin(Math.atan2(210-80,340-70))}" class="diagram-arc"/>
+            <text x="55" y="76" class="diagram-label">A</text>
+            <text x="344" y="76" class="diagram-label">B</text>
+            <text x="344" y="226" class="diagram-label">C</text>
+            <text x="115" y="90" class="diagram-angle">${angle||'θ'}</text>
+            <text x="190" y="75" class="diagram-side" fill="#64748b" font-size="11">horizontal</text>
+            <text x="190" y="210" class="diagram-side">${dist||'d'}</text>
+            <text x="350" y="148" class="diagram-side">${height||'h'}</text>
+        </svg>`;
+    }
+
+    // Simple right triangle given 2 known sides (for ratio identification)
+    function svgRatioTriangle(q) {
+        const {a, b, c, markAngle} = q.diagram; // markAngle = 'A' or 'C'
+        // A=bottom-left, B=bottom-right (90°), C=top-right
+        const rmk = drawRightMark(290, 200, 15, -1, -1);
+        const arcR = 28;
+        let arc = '', angleTxt = '';
+        if (markAngle === 'A') {
+            const theta = Math.atan2(200-55, 290-50);
+            const ax = 50 + arcR * Math.cos(-theta), ay = 200 + arcR * Math.sin(-theta);
+            arc = `<path d="M ${50+arcR} 200 A ${arcR} ${arcR} 0 0 0 ${ax} ${ay}" class="diagram-arc"/>`;
+            angleTxt = `<text x="88" y="192" class="diagram-angle">α</text>`;
+        } else {
+            const ax = 290 - arcR * Math.sin(0.6), ay = 55 + arcR * Math.cos(0.6);
+            arc = `<path d="M 290 ${55+arcR} A ${arcR} ${arcR} 0 0 0 ${ax} ${ay}" class="diagram-arc"/>`;
+            angleTxt = `<text x="254" y="80" class="diagram-angle">β</text>`;
+        }
+        return `<svg viewBox="0 0 360 260" class="w-full max-w-xl h-auto">
+            <line x1="50" y1="200" x2="290" y2="200" class="diagram-adj"/>
+            <line x1="290" y1="200" x2="290" y2="55" class="diagram-opp"/>
+            <line x1="50" y1="200" x2="290" y2="55" class="diagram-hyp"/>
+            ${rmk}${arc}${angleTxt}
+            <text x="36" y="216" class="diagram-label">A</text>
+            <text x="295" y="216" class="diagram-label">B</text>
+            <text x="295" y="50" class="diagram-label">C</text>
+            <text x="162" y="218" class="diagram-side">${a}</text>
+            <text x="298" y="132" class="diagram-side">${b}</text>
+            <text x="178" y="118" class="diagram-side">${c}</text>
+        </svg>`;
+    }
+
+    function renderDiagram(q) {
+        const el = document.getElementById('diagramContainer');
+        if (!q || !q.diagramType) { el.innerHTML = ''; return; }
+        if (q.diagramType === 'ratio')      el.innerHTML = svgRatioTriangle(q);
+        else if (q.diagramType === 'trig')  el.innerHTML = svgTrigTriangle(q);
+        else if (q.diagramType === 'composite') el.innerHTML = svgComposite(q);
+        else if (q.diagramType === 'elevation') el.innerHTML = svgElevation(q);
+        else el.innerHTML = '';
+    }
+
+    // ─── question generators ────────────────────────────────────────────────
+    // Pythagorean triples for building questions
+    const TRIPLES = [
+        [3,4,5],[5,12,13],[8,15,17],[7,24,25],[9,40,41],[6,8,10],[9,12,15],
+        [12,16,20],[15,20,25],[20,21,29],[8,6,10],[10,24,26]
+    ];
+
+    function pickTriple(exclude) {
+        let t;
+        do { t = pick(TRIPLES); } while (exclude && t === exclude);
+        return t; // [opp, adj, hyp] i.e. [a, b, c] with right angle at B
+    }
+
+    // ── SINE ──────────────────────────────────────────────────────────────────
+    function makeSineQuestion() {
+        const modes = ['readRatio','calcSin','findAngle','findSide','findSideHyp','level2'];
+        const mode = pick(modes.filter(m => m !== state.lastMode));
+        state.lastMode = mode;
+
+        if (mode === 'readRatio') {
+            // Given triangle with numbers, read off sin α or sin β as fraction
+            const t = pickTriple();
+            const [opp, adj, hyp] = t;
+            const useAlpha = pick([true,false]);
+            const sinVal = useAlpha ? opp/hyp : adj/hyp;
+            const expected = useAlpha ? `${opp}/${hyp}` : `${adj}/${hyp}`;
+            return {
+                text: `In the right-angled triangle ABC where ∠B = 90°, AB = ${adj}, BC = ${opp}, AC = ${hyp}. Find sin ${useAlpha ? 'α (at A)' : 'β (at C)'} as a fraction.`,
+                answer: sinVal,
+                tolerance: 0.001,
+                expected,
+                diagramType: 'ratio',
+                diagram: { a: adj, b: opp, c: hyp, markAngle: useAlpha ? 'A' : 'C' },
+                hints: ['Identify the opposite side and hypotenuse for the given angle.',`Opposite side from ${useAlpha?'A':'C'} is ${useAlpha?'BC':'AB'}. Hypotenuse is AC = ${hyp}.`,`sin = opp/hyp = ${expected}`],
+                steps: [`Identify: opp = ${useAlpha?opp:adj}, hyp = ${hyp}`, `sin = opp/hyp`, `= ${expected}`]
+            };
+        }
+
+        if (mode === 'calcSin') {
+            // Evaluate sin of a given angle
+            const angle = pick([18,25,33,42,51,57,63,68,72,77,81]);
+            const val = Math.sin(angle * Math.PI / 180);
+            return {
+                text: `Use a calculator to find the value of sin ${angle}°. Give your answer correct to 4 decimal places.`,
+                answer: val,
+                tolerance: 0.00015,
+                expected: fmt(val, 4),
+                diagramType: null,
+                hints: [`Make sure your calculator is in degree mode.`,`Key in: sin(${angle}) and round to 4 d.p.`,`sin ${angle}° ≈ ${fmt(val,4)}`],
+                steps: [`sin ${angle}° ≈ ${fmt(val,4)}`]
+            };
+        }
+
+        if (mode === 'findAngle') {
+            // Given sin θ = fraction, find θ
+            const t = pickTriple();
+            const [opp,,hyp] = t;
+            const theta = Math.asin(opp/hyp) * 180 / Math.PI;
+            return {
+                text: `Find the acute angle θ if sin θ = ${opp}/${hyp}. Give your answer correct to the nearest 0.1°.`,
+                answer: theta,
+                tolerance: 0.15,
+                expected: `${fmtDeg(theta)}°`,
+                diagramType: null,
+                hints: ['Use inverse sine: θ = sin⁻¹(opp/hyp).',`sin⁻¹(${opp}/${hyp}) = ?`,`θ = ${fmtDeg(theta)}°`],
+                steps: [`sin θ = ${opp}/${hyp}`, `θ = sin⁻¹(${opp}/${hyp})`, `θ ≈ ${fmtDeg(theta)}°`]
+            };
+        }
+
+        if (mode === 'findSide') {
+            // Given angle and hypotenuse, find opposite
+            const angle = pick([25,30,35,40,45,50,55,60]);
+            const hyp = pick([10,12,13,15,16,18,20,24,25]);
+            const opp = hyp * Math.sin(angle * Math.PI / 180);
+            return {
+                text: `In right-angled triangle ABC (∠B = 90°), AC = ${hyp} cm and ∠A = ${angle}°. Find BC. Give answer correct to 3 s.f.`,
+                answer: opp,
+                tolerance: 0.05,
+                expected: `${fmt(opp)} cm`,
+                diagramType: 'trig',
+                diagram: {labelA:'A',labelB:'B',labelC:'C', opp:'BC=?', adj:'AB', hyp:`AC=${hyp}`, angle:`${angle}°`},
+                hints: ['Label the sides relative to angle A: opp=BC, hyp=AC.',`sin ${angle}° = BC/${hyp}`,`BC = ${hyp} × sin ${angle}° ≈ ${fmt(opp)} cm`],
+                steps: [`sin ${angle}° = opp/hyp = BC/${hyp}`, `BC = ${hyp} × sin ${angle}°`, `BC ≈ ${fmt(opp)} cm`]
+            };
+        }
+
+        if (mode === 'findSideHyp') {
+            // Given angle and opposite, find hypotenuse
+            const angle = pick([20,28,35,40,45,50,55,62]);
+            const opp = pick([6,7,8,9,10,12,14,15]);
+            const hyp = opp / Math.sin(angle * Math.PI / 180);
+            return {
+                text: `In right-angled triangle ABC (∠B = 90°), BC = ${opp} cm and ∠A = ${angle}°. Find the hypotenuse AC. Give answer correct to 3 s.f.`,
+                answer: hyp,
+                tolerance: 0.05,
+                expected: `${fmt(hyp)} cm`,
+                diagramType: 'trig',
+                diagram: {labelA:'A',labelB:'B',labelC:'C', opp:`BC=${opp}`, adj:'AB', hyp:'AC=?', angle:`${angle}°`},
+                hints: ['sin A = opp/hyp = BC/AC.',`sin ${angle}° = ${opp}/AC`,`AC = ${opp}/sin ${angle}° ≈ ${fmt(hyp)} cm`],
+                steps: [`sin ${angle}° = BC/AC`, `sin ${angle}° = ${opp}/AC`, `AC = ${opp}/sin ${angle}° ≈ ${fmt(hyp)} cm`]
+            };
+        }
+
+        // level2: find angle given two sides via Pythagoras + sin
+        const t = pickTriple();
+        const [opp, adj] = t;
+        const hyp = Math.sqrt(opp*opp + adj*adj);
+        const theta = Math.asin(opp/hyp) * 180/Math.PI;
+        return {
+            text: `In right-angled triangle ABC (∠B = 90°), AB = ${adj} cm and BC = ${opp} cm. Find ∠A correct to the nearest 0.1°.`,
+            answer: theta,
+            tolerance: 0.15,
+            expected: `${fmtDeg(theta)}°`,
+            diagramType: 'ratio',
+            diagram: { a: adj, b: opp, c: `${fmt(hyp,1)}`, markAngle: 'A' },
+            hints: ['First find AC using Pythagoras theorem.',`AC = √(${adj}² + ${opp}²) = ${fmt(hyp,2)}`,`sin A = BC/AC = ${opp}/${fmt(hyp,3)}, so ∠A = sin⁻¹(${opp}/${fmt(hyp,3)}) ≈ ${fmtDeg(theta)}°`],
+            steps: [`AC = √(AB² + BC²) = √(${adj*adj} + ${opp*opp}) = ${fmt(hyp,3)} cm`, `sin A = BC/AC = ${opp}/${fmt(hyp,3)}`, `∠A = sin⁻¹(${opp}/${fmt(hyp,3)}) ≈ ${fmtDeg(theta)}°`]
+        };
+    }
+
+    // ── COSINE ────────────────────────────────────────────────────────────────
+    function makeCosineQuestion() {
+        const modes = ['readRatio','calcCos','findAngle','findSide','findSideHyp','level2'];
+        const mode = pick(modes.filter(m => m !== state.lastMode));
+        state.lastMode = mode;
+
+        if (mode === 'readRatio') {
+            const t = pickTriple();
+            const [opp, adj, hyp] = t;
+            const useAlpha = pick([true,false]);
+            const cosVal = useAlpha ? adj/hyp : opp/hyp;
+            const expected = useAlpha ? `${adj}/${hyp}` : `${opp}/${hyp}`;
+            return {
+                text: `In the right-angled triangle ABC where ∠B = 90°, AB = ${adj}, BC = ${opp}, AC = ${hyp}. Find cos ${useAlpha ? 'α (at A)' : 'β (at C)'} as a fraction.`,
+                answer: cosVal, tolerance: 0.001, expected,
+                diagramType: 'ratio',
+                diagram: { a: adj, b: opp, c: hyp, markAngle: useAlpha ? 'A' : 'C' },
+                hints: ['Identify the adjacent side and hypotenuse for the given angle.',`Adjacent from ${useAlpha?'A':'C'} is ${useAlpha?'AB':'BC'}. Hypotenuse is AC = ${hyp}.`,`cos = adj/hyp = ${expected}`],
+                steps: [`Identify: adj = ${useAlpha?adj:opp}, hyp = ${hyp}`, `cos = adj/hyp = ${expected}`]
+            };
+        }
+        if (mode === 'calcCos') {
+            const angle = pick([7,15,22,38,44,53,61,66,75,80]);
+            const val = Math.cos(angle * Math.PI/180);
+            return {
+                text: `Use a calculator to find cos ${angle}°. Give your answer correct to 4 decimal places.`,
+                answer: val, tolerance: 0.00015, expected: fmt(val,4),
+                diagramType: null,
+                hints: ['Make sure your calculator is in degree mode.','Key in: cos(angle).',`cos ${angle}° ≈ ${fmt(val,4)}`],
+                steps: [`cos ${angle}° ≈ ${fmt(val,4)}`]
+            };
+        }
+        if (mode === 'findAngle') {
+            const t = pickTriple();
+            const [,adj,hyp] = t;
+            const theta = Math.acos(adj/hyp)*180/Math.PI;
+            return {
+                text: `Find the acute angle θ if cos θ = ${adj}/${hyp}. Give answer to nearest 0.1°.`,
+                answer: theta, tolerance: 0.15, expected: `${fmtDeg(theta)}°`,
+                diagramType: null,
+                hints: ['Use inverse cosine.',`cos⁻¹(${adj}/${hyp}) = ?`,`θ = ${fmtDeg(theta)}°`],
+                steps: [`cos θ = ${adj}/${hyp}`, `θ = cos⁻¹(${adj}/${hyp}) ≈ ${fmtDeg(theta)}°`]
+            };
+        }
+        if (mode === 'findSide') {
+            const angle = pick([20,30,35,40,45,50,55,60,65]);
+            const hyp = pick([10,12,13,15,16,18,20,25]);
+            const adj = hyp * Math.cos(angle * Math.PI/180);
+            return {
+                text: `In right-angled triangle ABC (∠B = 90°), AC = ${hyp} cm and ∠A = ${angle}°. Find AB. Give answer to 3 s.f.`,
+                answer: adj, tolerance: 0.05, expected: `${fmt(adj)} cm`,
+                diagramType: 'trig',
+                diagram: {labelA:'A',labelB:'B',labelC:'C', opp:'BC', adj:'AB=?', hyp:`AC=${hyp}`, angle:`${angle}°`},
+                hints: ['cos A = adj/hyp = AB/AC.',`cos ${angle}° = AB/${hyp}`,`AB = ${hyp} × cos ${angle}° ≈ ${fmt(adj)} cm`],
+                steps: [`cos ${angle}° = AB/AC = AB/${hyp}`, `AB = ${hyp} × cos ${angle}°`, `AB ≈ ${fmt(adj)} cm`]
+            };
+        }
+        if (mode === 'findSideHyp') {
+            const angle = pick([22,30,35,40,48,55,60]);
+            const adj = pick([6,8,9,10,12,14,15]);
+            const hyp = adj / Math.cos(angle * Math.PI/180);
+            return {
+                text: `In right-angled triangle ABC (∠B = 90°), AB = ${adj} cm and ∠A = ${angle}°. Find the hypotenuse AC. Give answer to 3 s.f.`,
+                answer: hyp, tolerance: 0.05, expected: `${fmt(hyp)} cm`,
+                diagramType: 'trig',
+                diagram: {labelA:'A',labelB:'B',labelC:'C', opp:'BC', adj:`AB=${adj}`, hyp:'AC=?', angle:`${angle}°`},
+                hints: ['cos A = adj/hyp = AB/AC.',`cos ${angle}° = ${adj}/AC`,`AC = ${adj}/cos ${angle}° ≈ ${fmt(hyp)} cm`],
+                steps: [`cos ${angle}° = AB/AC = ${adj}/AC`, `AC = ${adj}/cos ${angle}° ≈ ${fmt(hyp)} cm`]
+            };
+        }
+        // level2: find angle from two sides
+        const t = pickTriple();
+        const [opp, adj] = t;
+        const hyp = Math.sqrt(opp*opp + adj*adj);
+        const theta = Math.acos(adj/hyp)*180/Math.PI;
+        return {
+            text: `In right-angled triangle ABC (∠B = 90°), AB = ${adj} cm and BC = ${opp} cm. Find ∠A correct to the nearest 0.1°.`,
+            answer: theta, tolerance: 0.15, expected: `${fmtDeg(theta)}°`,
+            diagramType: 'ratio',
+            diagram: { a: adj, b: opp, c: `${fmt(hyp,1)}`, markAngle: 'A' },
+            hints: ['AC = √(AB² + BC²) first.',`AC = ${fmt(hyp,3)}`,`cos A = AB/AC, so ∠A = cos⁻¹(${adj}/${fmt(hyp,3)}) ≈ ${fmtDeg(theta)}°`],
+            steps: [`AC = √(${adj}²+${opp}²) = ${fmt(hyp,3)} cm`, `cos A = AB/AC = ${adj}/${fmt(hyp,3)}`, `∠A = cos⁻¹(${adj}/${fmt(hyp,3)}) ≈ ${fmtDeg(theta)}°`]
+        };
+    }
+
+    // ── TANGENT ───────────────────────────────────────────────────────────────
+    function makeTangentQuestion() {
+        const modes = ['readRatio','calcTan','findAngle','findOpp','findAdj','level2'];
+        const mode = pick(modes.filter(m => m !== state.lastMode));
+        state.lastMode = mode;
+
+        if (mode === 'readRatio') {
+            const t = pickTriple();
+            const [opp, adj] = t;
+            const tanVal = opp/adj;
+            const expected = `${opp}/${adj}`;
+            return {
+                text: `In the right-angled triangle ABC (∠B = 90°), AB = ${adj}, BC = ${opp}. Find tan α (at A) as a fraction.`,
+                answer: tanVal, tolerance: 0.001, expected,
+                diagramType: 'ratio',
+                diagram: { a: adj, b: opp, c: `${fmt(Math.sqrt(adj*adj+opp*opp),1)}`, markAngle: 'A' },
+                hints: ['tan = opp/adj.',`Opposite from A is BC = ${opp}. Adjacent is AB = ${adj}.`,`tan α = ${expected}`],
+                steps: [`Identify: opp = BC = ${opp}, adj = AB = ${adj}`, `tan α = opp/adj = ${expected}`]
+            };
+        }
+        if (mode === 'calcTan') {
+            const angle = pick([10,20,30,40,45,50,60,70,75,80]);
+            const val = Math.tan(angle * Math.PI/180);
+            return {
+                text: `Use a calculator to find tan ${angle}°. Give your answer correct to 4 decimal places.`,
+                answer: val, tolerance: 0.0015, expected: fmt(val,4),
+                diagramType: null,
+                hints: ['Make sure your calculator is in degree mode.',`Key in: tan(${angle}).`,`tan ${angle}° ≈ ${fmt(val,4)}`],
+                steps: [`tan ${angle}° ≈ ${fmt(val,4)}`]
+            };
+        }
+        if (mode === 'findAngle') {
+            const t = pickTriple();
+            const [opp, adj] = t;
+            const theta = Math.atan2(opp,adj)*180/Math.PI;
+            return {
+                text: `Find the acute angle θ if tan θ = ${opp}/${adj}. Give answer to nearest 0.1°.`,
+                answer: theta, tolerance: 0.15, expected: `${fmtDeg(theta)}°`,
+                diagramType: null,
+                hints: ['Use inverse tangent.',`tan⁻¹(${opp}/${adj}) = ?`,`θ ≈ ${fmtDeg(theta)}°`],
+                steps: [`tan θ = ${opp}/${adj}`, `θ = tan⁻¹(${opp}/${adj}) ≈ ${fmtDeg(theta)}°`]
+            };
+        }
+        if (mode === 'findOpp') {
+            const angle = pick([20,28,35,40,45,50,55,62,70]);
+            const adj = pick([6,8,9,10,12,14,15]);
+            const opp = adj * Math.tan(angle * Math.PI/180);
+            return {
+                text: `In right-angled triangle ABC (∠B = 90°), AB = ${adj} cm and ∠A = ${angle}°. Find BC. Give answer to 3 s.f.`,
+                answer: opp, tolerance: 0.05, expected: `${fmt(opp)} cm`,
+                diagramType: 'trig',
+                diagram: {labelA:'A',labelB:'B',labelC:'C', opp:'BC=?', adj:`AB=${adj}`, hyp:'AC', angle:`${angle}°`},
+                hints: ['tan A = opp/adj = BC/AB.',`tan ${angle}° = BC/${adj}`,`BC = ${adj} × tan ${angle}° ≈ ${fmt(opp)} cm`],
+                steps: [`tan ${angle}° = BC/AB = BC/${adj}`, `BC = ${adj} × tan ${angle}°`, `BC ≈ ${fmt(opp)} cm`]
+            };
+        }
+        if (mode === 'findAdj') {
+            const angle = pick([22,30,38,42,50,55,60,65]);
+            const opp = pick([6,8,9,10,12,15,18]);
+            const adj = opp / Math.tan(angle * Math.PI/180);
+            return {
+                text: `In right-angled triangle ABC (∠B = 90°), BC = ${opp} cm and ∠A = ${angle}°. Find AB. Give answer to 3 s.f.`,
+                answer: adj, tolerance: 0.05, expected: `${fmt(adj)} cm`,
+                diagramType: 'trig',
+                diagram: {labelA:'A',labelB:'B',labelC:'C', opp:`BC=${opp}`, adj:'AB=?', hyp:'AC', angle:`${angle}°`},
+                hints: ['tan A = opp/adj.',`tan ${angle}° = ${opp}/AB`,`AB = ${opp}/tan ${angle}° ≈ ${fmt(adj)} cm`],
+                steps: [`tan ${angle}° = BC/AB = ${opp}/AB`, `AB = ${opp}/tan ${angle}°`, `AB ≈ ${fmt(adj)} cm`]
+            };
+        }
+        // level2: find angle
+        const t = pickTriple();
+        const [opp, adj] = t;
+        const theta = Math.atan2(opp,adj)*180/Math.PI;
+        return {
+            text: `In right-angled triangle ABC (∠B = 90°), AB = ${adj} cm and BC = ${opp} cm. Find ∠A using tangent ratio. Give answer to nearest 0.1°.`,
+            answer: theta, tolerance: 0.15, expected: `${fmtDeg(theta)}°`,
+            diagramType: 'ratio',
+            diagram: { a: adj, b: opp, c: `${fmt(Math.sqrt(adj*adj+opp*opp),1)}`, markAngle: 'A' },
+            hints: ['tan A = opp/adj = BC/AB.',`tan A = ${opp}/${adj}`,`∠A = tan⁻¹(${opp}/${adj}) ≈ ${fmtDeg(theta)}°`],
+            steps: [`tan A = BC/AB = ${opp}/${adj}`, `∠A = tan⁻¹(${opp}/${adj}) ≈ ${fmtDeg(theta)}°`]
+        };
+    }
+
+    // ── APPLICATIONS ──────────────────────────────────────────────────────────
+    function makeApplicationsQuestion() {
+        const modes = ['properties','elevation','depression','composite','bearingAngle','ramp','flagpole'];
+        const mode = pick(modes.filter(m => m !== state.lastMode));
+        state.lastMode = mode;
+
+        if (mode === 'properties') {
+            const items = [
+                { text: 'Arrange sin 12°, sin 39°, sin 65° in descending order.', answer: 'sin65>sin39>sin12', alt: ['sin 65° > sin 39° > sin 12°'], hint: 'Sine increases as the angle increases (for 0°<θ<90°).' },
+                { text: 'Arrange cos 19°, cos 25°, cos 50° in descending order.', answer: 'cos19>cos25>cos50', alt: ['cos 19° > cos 25° > cos 50°'], hint: 'Cosine decreases as the angle increases.' },
+                { text: 'Arrange tan 2°, tan 42°, tan 75° in descending order.', answer: 'tan75>tan42>tan2', alt: ['tan 75° > tan 42° > tan 2°'], hint: 'Tangent increases as the angle increases.' },
+                { text: 'Is it possible for sin θ to be greater than 1 for some acute angle θ?', answer: 'no', alt: ['no','impossible','cannot'], hint: 'For acute angles, sin θ is always between 0 and 1.' },
+                { text: 'Can tan θ be greater than 100 for some acute angle θ?', answer: 'yes', alt: ['yes','possible','can'], hint: 'tan θ can be very large as θ approaches 90°.' },
+                { text: 'Which is larger: sin 55° or sin 30°?', answer: 'sin55', alt: ['sin 55°','sin55°'], hint: 'Sine is increasing for 0°<θ<90°.' }
+            ];
+            const item = pick(items);
+            return {
+                text: item.text,
+                answer: 0,  // text-based: always accepted via alt check
+                tolerance: 999,
+                expected: item.alt[0],
+                altAnswers: item.alt,
+                isTextAnswer: true,
+                diagramType: null,
+                hints: [item.hint, 'Think about how sin, cos, and tan behave as θ increases from 0° to 90°.', `Answer: ${item.alt[0]}`],
+                steps: [item.hint, `Answer: ${item.alt[0]}`]
+            };
+        }
+
+        if (mode === 'elevation') {
+            const angle = pick([25,30,35,40,45,50,55,60]);
+            const dist = pick([20,25,30,40,50,60,80,100]);
+            const h = dist * Math.tan(angle * Math.PI/180);
+            return {
+                text: `A point A on the ground is ${dist} m from the base B of a vertical tower BC. The angle of elevation of C from A is ${angle}°. Find the height of the tower. Give answer to 3 s.f.`,
+                answer: h, tolerance: 0.1, expected: `${fmt(h)} m`,
+                diagramType: 'elevation',
+                diagram: { dist, height: `h=?`, angle: `${angle}°`, kind: 'elevation' },
+                hints: ['Draw a right triangle with the horizontal distance and tower height.',`tan ${angle}° = height/distance = h/${dist}`,`h = ${dist} × tan ${angle}° ≈ ${fmt(h)} m`],
+                steps: [`tan ${angle}° = BC/AB = h/${dist}`, `h = ${dist} × tan ${angle}°`, `h ≈ ${fmt(h)} m`]
+            };
+        }
+
+        if (mode === 'depression') {
+            const angle = pick([20,28,30,35,40,45,50]);
+            const h = pick([30,40,50,60,80,100]);
+            const dist = h / Math.tan(angle * Math.PI/180);
+            return {
+                text: `From the top of a cliff that is ${h} m tall, the angle of depression of a boat is ${angle}°. Find the horizontal distance from the boat to the cliff base. Give answer to 3 s.f.`,
+                answer: dist, tolerance: 0.2, expected: `${fmt(dist)} m`,
+                diagramType: 'elevation',
+                diagram: { dist: 'd=?', height: h, angle: `${angle}°`, kind: 'depression' },
+                hints: ['The angle of depression equals the angle of elevation from the boat (alternate angles).',`tan ${angle}° = cliff height / horizontal distance`,`d = ${h}/tan ${angle}° ≈ ${fmt(dist)} m`],
+                steps: [`tan ${angle}° = h/d = ${h}/d`, `d = ${h}/tan ${angle}°`, `d ≈ ${fmt(dist)} m`]
+            };
+        }
+
+        if (mode === 'composite') {
+            // Triangle with altitude from vertex to base
+            const angleBAD = pick([25,30,35,40]);
+            const AB = pick([6,8,10,12,15]);
+            const BD = AB * Math.sin(angleBAD * Math.PI/180);
+            const DC = pick([8,10,12,15,18,20]);
+            const BC = Math.sqrt(BD*BD + DC*DC);
+            const angleDBC = Math.atan(DC/BD)*180/Math.PI;
+            return {
+                text: `In the figure, D is on AC with BD ⊥ AC. ∠BAD = ${angleBAD}°, AB = ${fmt(AB)} cm, DC = ${fmt(DC)} cm. Find (a) BD, (b) ∠DBC. Give answers to 3 s.f.`,
+                answer: BD, tolerance: 0.05, expected: `BD ≈ ${fmt(BD)} cm, ∠DBC ≈ ${fmtDeg(angleDBC)}°`,
+                secondAnswer: angleDBC,
+                secondTolerance: 0.2,
+                diagramType: 'composite',
+                diagram: { AB: `AB=${fmt(AB)}`, DC: `DC=${fmt(DC)}`, BD:'BD=?', topLabel:'B', btmLeft:'A', btmRight:'C', perp:'D' },
+                hints: [`In △ABD: BD = AB × sin(∠BAD).`,`BD = ${fmt(AB)} × sin ${angleBAD}° ≈ ${fmt(BD)} cm`,`In △BDC: tan(∠DBC) = DC/BD, so ∠DBC ≈ ${fmtDeg(angleDBC)}°`],
+                steps: [`In △ABD: sin ${angleBAD}° = BD/AB`, `BD = ${fmt(AB)} × sin ${angleBAD}° ≈ ${fmt(BD)} cm`, `In △BDC: tan(∠DBC) = DC/BD = ${fmt(DC)}/${fmt(BD)}`, `∠DBC = tan⁻¹(${fmt(DC)}/${fmt(BD)}) ≈ ${fmtDeg(angleDBC)}°`]
+            };
+        }
+
+        if (mode === 'bearingAngle') {
+            // Find direction angle (simple N/S/E/W bearing problem)
+            const east = pick([3,4,5,6,8,9,10,12]);
+            const north = pick([3,4,5,6,8,9,10,12]);
+            const bearing = Math.atan2(east,north)*180/Math.PI;
+            return {
+                text: `A ship sails ${east} km east and ${north} km north from port. What is the bearing (angle from north, clockwise) of the ship from the port? Give answer to nearest 0.1°.`,
+                answer: bearing, tolerance: 0.2, expected: `${fmtDeg(bearing)}°`,
+                diagramType: null,
+                hints: ['Draw a right triangle with east and north components.',`tan(bearing) = east/north = ${east}/${north}`,`bearing = tan⁻¹(${east}/${north}) ≈ ${fmtDeg(bearing)}°`],
+                steps: [`tan(bearing) = east/north = ${east}/${north}`, `bearing = tan⁻¹(${east}/${north}) ≈ ${fmtDeg(bearing)}°`]
+            };
+        }
+
+        if (mode === 'ramp') {
+            const angle = pick([10,12,15,18,20,22,25]);
+            const length = pick([5,6,8,10,12,15,20]);
+            const height = length * Math.sin(angle * Math.PI/180);
+            return {
+                text: `A ramp is ${length} m long and makes an angle of ${angle}° with the horizontal. Find the vertical height it rises. Give answer to 3 s.f.`,
+                answer: height, tolerance: 0.05, expected: `${fmt(height)} m`,
+                diagramType: 'elevation',
+                diagram: { dist: `${fmt(length*Math.cos(angle*Math.PI/180),2)}`, height: 'h=?', angle: `${angle}°`, kind: 'elevation' },
+                hints: ['Identify: ramp length = hypotenuse, height = opposite.',`sin ${angle}° = height/length = h/${length}`,`h = ${length} × sin ${angle}° ≈ ${fmt(height)} m`],
+                steps: [`sin ${angle}° = h/${length}`, `h = ${length} × sin ${angle}°`, `h ≈ ${fmt(height)} m`]
+            };
+        }
+
+        // flagpole: given shadow length and sun angle, find height
+        const angle = pick([30,35,40,45,50,55,60,65]);
+        const shadow = pick([8,10,12,15,18,20,25]);
+        const flagH = shadow * Math.tan(angle * Math.PI/180);
+        return {
+            text: `A flagpole casts a shadow ${shadow} m long on level ground. The angle of elevation of the sun is ${angle}°. Find the height of the flagpole. Give answer to 3 s.f.`,
+            answer: flagH, tolerance: 0.1, expected: `${fmt(flagH)} m`,
+            diagramType: 'elevation',
+            diagram: { dist: shadow, height: 'h=?', angle: `${angle}°`, kind: 'elevation' },
+            hints: ['Shadow = adjacent, flagpole height = opposite.',`tan ${angle}° = height/shadow = h/${shadow}`,`h = ${shadow} × tan ${angle}° ≈ ${fmt(flagH)} m`],
+            steps: [`tan ${angle}° = h/${shadow}`, `h = ${shadow} × tan ${angle}°`, `h ≈ ${fmt(flagH)} m`]
+        };
+    }
+
+    function makeQuestion(ws) {
+        if (ws === 'sine')         return makeSineQuestion();
+        if (ws === 'cosine')       return makeCosineQuestion();
+        if (ws === 'tangent')      return makeTangentQuestion();
+        return makeApplicationsQuestion();
+    }
+
+    // ─── hints ───────────────────────────────────────────────────────────────
+    function showHint() {
+        const q = state.currentQuestion;
+        if (!q || state.isAnswered) return;
+        const panel = document.getElementById('hintPanel');
+        const txtEl = document.getElementById('hintText');
+        const progEl = document.getElementById('hintProgress');
+        const scaffoldEl = document.getElementById('hintScaffold');
+        const scaffoldList = document.getElementById('hintScaffoldList');
+        panel.classList.remove('hidden');
+        const hints = q.hints || [];
+        if (state.hintStep < hints.length) {
+            txtEl.textContent = hints[state.hintStep];
+            progEl.textContent = `Hint ${state.hintStep + 1} of ${hints.length}`;
+            state.hintStep++;
+        }
+        if (state.hintStep >= hints.length && q.steps) {
+            scaffoldEl.classList.remove('hidden');
+            scaffoldList.innerHTML = q.steps.map(s => `<li>${s}</li>`).join('');
+        }
+    }
+
+    // ─── answer checking ─────────────────────────────────────────────────────
+    function parseAnswer(raw) {
+        const cleaned = raw.replace(/°/g,'').replace(/[,\s]/g,'').toLowerCase();
+        // Handle fractions
+        if (/^\d+\/\d+$/.test(cleaned)) {
+            const [n,d] = cleaned.split('/').map(Number);
+            return n/d;
+        }
+        const n = parseFloat(cleaned);
+        return isNaN(n) ? null : n;
+    }
+
+    function checkTextAnswer(raw, q) {
+        const norm = raw.toLowerCase().replace(/\s+/g,'').replace(/°/g,'').replace(/[>]/g,'>');
+        const alts = (q.altAnswers || [q.expected]).map(a => a.toLowerCase().replace(/\s+/g,'').replace(/°/g,'').replace(/[>]/g,'>'));
+        return alts.some(a => norm.includes(a) || a.includes(norm));
+    }
+
+    function checkAnswer() {
+        if (state.isAnswered) return;
+        const q = state.currentQuestion;
+        const raw = document.getElementById('workInput').value.trim();
+        if (!raw) { alert('Please write your working before checking!'); return; }
+
+        let correct = false;
+        let userNumeric = null;
+
+        if (q.isTextAnswer) {
+            correct = checkTextAnswer(raw, q);
+        } else {
+            userNumeric = parseAnswer(raw);
+            if (userNumeric !== null) {
+                const diff = Math.abs(userNumeric - q.answer);
+                correct = diff <= (q.tolerance || 0.05);
+                // also check second answer if present
+                if (!correct && q.secondAnswer !== undefined) {
+                    correct = diff <= (q.tolerance || 0.05) || Math.abs(userNumeric - q.secondAnswer) <= (q.secondTolerance || 0.2);
+                }
+            }
+        }
+
+        state.isAnswered = true;
+
+        if (correct) {
+            const prev = parseInt(localStorage.getItem(keyFor(state.currentWorksheet)) || '0', 10);
+            localStorage.setItem(keyFor(state.currentWorksheet), String(prev + 1));
+            if (window.__mq_increment) window.__mq_increment('trigonometry', 1);
+        }
+
+        renderFeedback(correct, q, raw);
+
+        document.getElementById('workInput').setAttribute('disabled', 'disabled');
+        document.getElementById('checkBtn').classList.add('hidden');
+        document.getElementById('nextBtn').classList.remove('hidden');
+    }
+
+    function renderFeedback(correct, q, userWork) {
+        const panel = document.getElementById('feedbackPanel');
+        const badge = document.getElementById('feedbackBadge');
+        const summary = document.getElementById('feedbackSummary');
+        const methodList = document.getElementById('feedbackMethod');
+        const checklist = document.getElementById('feedbackChecklist');
+        panel.classList.remove('hidden');
+
+        if (correct) {
+            badge.className = 'inline-flex items-center rounded-full px-3 py-1 text-xs font-black bg-green-100 text-green-800';
+            badge.textContent = '✓ Correct';
+            summary.textContent = 'Great work! Your answer is correct.';
+        } else {
+            badge.className = 'inline-flex items-center rounded-full px-3 py-1 text-xs font-black bg-red-100 text-red-800';
+            badge.textContent = '✗ Not yet';
+            summary.textContent = `Not yet — the correct answer is ${q.expected}. Study the model method below.`;
+        }
+
+        // Checklist: 3-step review cards
+        const steps = [
+            { title: 'Identify sides/ratio', check: /opp|adj|hyp|sin|cos|tan/i.test(userWork), tip: 'Start by labelling opp, adj, hyp relative to the given angle.' },
+            { title: 'Set up equation', check: /=/.test(userWork), tip: 'Write the trig ratio equation: e.g. sin θ = opp/hyp.' },
+            { title: 'Final answer with units', check: /°|cm|m|\//.test(userWork), tip: 'Include degree symbol ° for angles, or cm/m for lengths.' }
+        ];
+        checklist.innerHTML = steps.map(s => `
+            <div class="rounded-xl border p-3 ${s.check ? 'feedback-good' : 'feedback-warn'}">
+                <div class="text-xs font-black uppercase ${s.check ? 'text-green-800' : 'text-amber-800'}">${s.check ? '✓' : '○'} ${s.title}</div>
+                <div class="text-xs mt-1 font-semibold text-slate-700">${s.tip}</div>
+            </div>`).join('');
+
+        // Model method
+        const modelSteps = q.steps || [`Answer: ${q.expected}`];
+        methodList.innerHTML = modelSteps.map(s => `<li>${s}</li>`).join('');
+    }
+
+    // ─── question flow ────────────────────────────────────────────────────────
+    function clearPanels() {
+        document.getElementById('workInput').value = '';
+        document.getElementById('workInput').removeAttribute('disabled');
+        state.hintStep = 0;
+        document.getElementById('hintPanel').classList.add('hidden');
+        document.getElementById('feedbackPanel').classList.add('hidden');
+        document.getElementById('hintScaffold').classList.add('hidden');
+    }
+
+    function nextQuestion() {
+        if (state.questionNo >= MAX_Q) { showMenu(); return; }
+        state.questionNo++;
+        state.currentQuestion = makeQuestion(state.currentWorksheet);
+        state.isAnswered = false;
+        document.getElementById('questionNo').textContent = state.questionNo;
+        document.getElementById('questionText').textContent = state.currentQuestion.text;
+        renderDiagram(state.currentQuestion);
+        clearPanels();
+        document.getElementById('checkBtn').classList.remove('hidden');
+        document.getElementById('nextBtn').classList.add('hidden');
+    }
+
+    // ─── init ─────────────────────────────────────────────────────────────────
+    loadName();
+    updateWorksheetTracker();
+</script>
+</body>
+</html>

@@ -602,6 +602,48 @@
 
       <a href="Mensuration.html" class="play-link" style="margin-top:14px">Start Quiz →</a>
     </div>
+
+    <div class="card" style="max-width: 250px;">
+      <div class="icon-circle" style="background-color:#f5f3ff;color:#7c3aed">
+        <i data-lucide="triangle" stroke-width="2.5" width="36" height="36"></i>
+      </div>
+      <h2>Trigonometric Ratios</h2>
+
+      <div style="width:100%;margin:12px 0 0;text-align:left">
+        <div style="display:flex;justify-content:space-between;align-items:center;font-weight:700;color:var(--text-muted);font-size:0.95rem;margin-bottom:6px">
+          <span>Progress</span>
+          <span id="progress-trigonometry">0</span>
+        </div>
+        <div style="background:#f5f3ff;border-radius:999px;height:12px;overflow:hidden">
+          <div id="bar-trigonometry" style="height:12px;width:0%;background:linear-gradient(90deg,#8b5cf6,#7c3aed)"></div>
+        </div>
+        <div class="tiers" style="display:flex;gap:8px;margin-top:10px;align-items:flex-end">
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:800;color:#7c3aed;margin-bottom:4px">Bronze</div>
+            <div style="background:#ede9fe;border-radius:999px;height:10px;overflow:hidden">
+              <div id="bronze-fill-trigonometry" style="height:10px;width:0%;background:#7c3aed"></div>
+            </div>
+            <div id="bronze-text-trigonometry" style="font-size:12px;color:var(--text-muted);font-weight:700;margin-top:4px">0/30</div>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:800;color:#6b7280;margin-bottom:4px">Silver</div>
+            <div style="background:#f3f4f6;border-radius:999px;height:10px;overflow:hidden">
+              <div id="silver-fill-trigonometry" style="height:10px;width:0%;background:#374151"></div>
+            </div>
+            <div id="silver-text-trigonometry" style="font-size:12px;color:var(--text-muted);font-weight:700;margin-top:4px">0/80</div>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:800;color:#b45309;margin-bottom:4px">Gold</div>
+            <div style="background:#fff7ed;border-radius:999px;height:10px;overflow:hidden">
+              <div id="gold-fill-trigonometry" style="height:10px;width:0%;background:#b45309"></div>
+            </div>
+            <div id="gold-text-trigonometry" style="font-size:12px;color:var(--text-muted);font-weight:700;margin-top:4px">0/200</div>
+          </div>
+        </div>
+      </div>
+
+      <a href="Trigonometry.html" class="play-link" style="margin-top:14px">Start Quiz →</a>
+    </div>
   </div>
 
   <!-- Leaderboard Modal (hidden by default) -->
@@ -685,7 +727,7 @@
     loadAllProgress();
   };
 
-  const TOPICS = ['algebra','congruence','geometry','ratio','similarity','pythagoras','mensuration'];
+  const TOPICS = ['algebra','congruence','geometry','ratio','similarity','pythagoras','mensuration','trigonometry'];
   const GLOBAL_GOAL = 200; // fixed overall goal (total correct answers)
   const TIER_TARGETS = { bronze: 30, silver: 80, gold: 200 };
   const TOPIC_COLORS = {
@@ -695,7 +737,8 @@
     ratio: '#7e22ce',
     similarity: '#be123c',
     pythagoras: '#0e7490',
-    mensuration: '#4338ca'
+    mensuration: '#4338ca',
+    trigonometry: '#7c3aed'
   };
 
   // Web App URL to append progress rows to your Google Sheet (Apps Script doGet handler)
