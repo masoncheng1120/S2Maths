@@ -205,13 +205,33 @@
         isAnswered: false,
         studentName: 'Student',
         hintStep: 0,
-        lastMode: null
+        lastMode: null,
+        modePool: []
     };
 
     // ─── helpers ────────────────────────────────────────────────────────────
     function keyFor(ws) { return `mq_score_trigonometry_${ws}`; }
     function rnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
     function pick(arr) { return arr[rnd(0, arr.length - 1)]; }
+    function shuffleArray(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+    // Cycle through all modes before repeating; avoids consecutive repeat
+    function pickMode(modes) {
+        if (!state.modePool || state.modePool.length === 0) {
+            state.modePool = shuffleArray([...modes]);
+            if (state.modePool[0] === state.lastMode && state.modePool.length > 1) {
+                [state.modePool[0], state.modePool[1]] = [state.modePool[1], state.modePool[0]];
+            }
+        }
+        const chosen = state.modePool.shift();
+        state.lastMode = chosen;
+        return chosen;
+    }
     function fmt(v, dp = 3) {
         if (Number.isInteger(v)) return String(v);
         return parseFloat(v.toFixed(dp)).toString();
@@ -258,6 +278,7 @@
         state.questionNo = 0;
         state.isAnswered = false;
         state.lastMode = null;
+        state.modePool = [];
         document.getElementById('quizWorksheetLabel').textContent = SUBTOPIC_NAMES[ws];
         document.getElementById('menuView').classList.add('hidden');
         document.getElementById('quizView').classList.remove('hidden');
@@ -330,36 +351,42 @@
 
     // Elevation/depression diagram
     function svgElevation(q) {
-        const {dist, height, angle, kind} = q.diagram;
+        const {dist, height, angle, kind, slantLabel, hideAnnotation} = q.diagram;
         if (kind === 'elevation') {
-            return `<svg viewBox="0 0 400 260" class="w-full max-w-xl h-auto">
+            // Slant line midpoint ≈ (205, 135) for the line from (70,210)→(340,60)
+            const slantMid = slantLabel
+                ? `<text x="185" y="122" fill="#92400e" font-size="13" font-weight="800" transform="rotate(-29 205 135)">${slantLabel}</text>`
+                : '';
+            const annotation = hideAnnotation ? '' : `<text x="130" y="248" class="diagram-label" font-size="11" fill="#64748b">angle of elevation</text>`;
+            return `<svg viewBox="0 0 400 270" class="w-full max-w-xl h-auto">
                 <line x1="30" y1="210" x2="370" y2="210" class="diagram-line"/>
                 <line x1="70" y1="210" x2="340" y2="60" class="diagram-line"/>
                 <line x1="340" y1="60" x2="340" y2="210" class="diagram-line"/>
                 ${drawRightMark(340,210,14,-1,-1)}
-                <path d="M 110 210 A 40 40 0 0 1 ${70+40*Math.cos(Math.atan2(60-210,340-70))} ${210+40*Math.sin(Math.atan2(60-210,340-70))}" class="diagram-arc"/>
-                <text x="55" y="226" class="diagram-label">A</text>
+                <path d="M 112 210 A 40 40 0 0 1 ${70+40*Math.cos(Math.atan2(60-210,340-70))} ${210+40*Math.sin(Math.atan2(60-210,340-70))}" class="diagram-arc"/>
+                <text x="44" y="226" class="diagram-label">A</text>
                 <text x="344" y="226" class="diagram-label">B</text>
                 <text x="344" y="55" class="diagram-label">C</text>
-                <text x="118" y="204" class="diagram-angle">${angle||'θ'}</text>
-                <text x="190" y="226" class="diagram-side">${dist||'d'}</text>
-                <text x="350" y="138" class="diagram-side">${height||'h'}</text>
-                <text x="55" y="190" class="diagram-label" font-size="11" fill="#64748b">angle of elevation</text>
+                <text x="115" y="202" class="diagram-angle">${angle||'θ'}</text>
+                ${dist ? `<text x="190" y="228" class="diagram-side">${dist}</text>` : ''}
+                <text x="350" y="140" class="diagram-side">${height||'h'}</text>
+                ${slantMid}
+                ${annotation}
             </svg>`;
         }
         // depression
         return `<svg viewBox="0 0 400 260" class="w-full max-w-xl h-auto">
-            <line x1="30" y1="80" x2="370" y2="80" class="diagram-line" stroke-dasharray="5 4" stroke="#64748b"/>
-            <line x1="70" y1="80" x2="340" y2="210" class="diagram-line"/>
-            <line x1="340" y1="80" x2="340" y2="210" class="diagram-line"/>
-            ${drawRightMark(340,80,14,-1,1)}
-            <path d="M 110 80 A 35 35 0 0 0 ${70+35*Math.cos(Math.atan2(210-80,340-70))} ${80+35*Math.sin(Math.atan2(210-80,340-70))}" class="diagram-arc"/>
-            <text x="55" y="76" class="diagram-label">A</text>
-            <text x="344" y="76" class="diagram-label">B</text>
-            <text x="344" y="226" class="diagram-label">C</text>
-            <text x="115" y="90" class="diagram-angle">${angle||'θ'}</text>
-            <text x="190" y="75" class="diagram-side" fill="#64748b" font-size="11">horizontal</text>
-            <text x="190" y="210" class="diagram-side">${dist||'d'}</text>
+            <line x1="30" y1="70" x2="370" y2="70" stroke-dasharray="5 4" stroke="#94a3b8" stroke-width="1.5" fill="none"/>
+            <line x1="70" y1="70" x2="340" y2="210" class="diagram-line"/>
+            <line x1="340" y1="70" x2="340" y2="210" class="diagram-line"/>
+            ${drawRightMark(340,70,14,-1,1)}
+            <path d="M 110 70 A 35 35 0 0 0 ${70+35*Math.cos(Math.atan2(210-70,340-70))} ${70+35*Math.sin(Math.atan2(210-70,340-70))}" class="diagram-arc"/>
+            <text x="44" y="66" class="diagram-label">A</text>
+            <text x="344" y="66" class="diagram-label">B</text>
+            <text x="344" y="228" class="diagram-label">C</text>
+            <text x="112" y="83" class="diagram-angle">${angle||'θ'}</text>
+            <text x="170" y="64" class="diagram-label" font-size="11" fill="#64748b">horizontal</text>
+            <text x="190" y="228" class="diagram-side">${dist||'d=?'}</text>
             <text x="350" y="148" class="diagram-side">${height||'h'}</text>
         </svg>`;
     }
@@ -421,8 +448,7 @@
     // ── SINE ──────────────────────────────────────────────────────────────────
     function makeSineQuestion() {
         const modes = ['readRatio','calcSin','findAngle','findSide','findSideHyp','level2'];
-        const mode = pick(modes.filter(m => m !== state.lastMode));
-        state.lastMode = mode;
+        const mode = pickMode(modes);
 
         if (mode === 'readRatio') {
             // Given triangle with numbers, read off sin α or sin β as fraction
@@ -528,8 +554,7 @@
     // ── COSINE ────────────────────────────────────────────────────────────────
     function makeCosineQuestion() {
         const modes = ['readRatio','calcCos','findAngle','findSide','findSideHyp','level2'];
-        const mode = pick(modes.filter(m => m !== state.lastMode));
-        state.lastMode = mode;
+        const mode = pickMode(modes);
 
         if (mode === 'readRatio') {
             const t = pickTriple();
@@ -613,8 +638,7 @@
     // ── TANGENT ───────────────────────────────────────────────────────────────
     function makeTangentQuestion() {
         const modes = ['readRatio','calcTan','findAngle','findOpp','findAdj','level2'];
-        const mode = pick(modes.filter(m => m !== state.lastMode));
-        state.lastMode = mode;
+        const mode = pickMode(modes);
 
         if (mode === 'readRatio') {
             const t = pickTriple();
@@ -696,8 +720,7 @@
     // ── APPLICATIONS ──────────────────────────────────────────────────────────
     function makeApplicationsQuestion() {
         const modes = ['properties','elevation','depression','composite','bearingAngle','ramp','flagpole'];
-        const mode = pick(modes.filter(m => m !== state.lastMode));
-        state.lastMode = mode;
+        const mode = pickMode(modes);
 
         if (mode === 'properties') {
             const items = [
@@ -764,7 +787,7 @@
                 secondAnswer: angleDBC,
                 secondTolerance: 0.2,
                 diagramType: 'composite',
-                diagram: { AB: `AB=${fmt(AB)}`, DC: `DC=${fmt(DC)}`, BD:'BD=?', topLabel:'B', btmLeft:'A', btmRight:'C', perp:'D' },
+                diagram: { AB: `AB=${fmt(AB)}`, CD: `DC=${fmt(DC)}`, BD:'BD=?', topLabel:'B', btmLeft:'A', btmRight:'C', perp:'D' },
                 hints: [`In △ABD: BD = AB × sin(∠BAD).`,`BD = ${fmt(AB)} × sin ${angleBAD}° ≈ ${fmt(BD)} cm`,`In △BDC: tan(∠DBC) = DC/BD, so ∠DBC ≈ ${fmtDeg(angleDBC)}°`],
                 steps: [`In △ABD: sin ${angleBAD}° = BD/AB`, `BD = ${fmt(AB)} × sin ${angleBAD}° ≈ ${fmt(BD)} cm`, `In △BDC: tan(∠DBC) = DC/BD = ${fmt(DC)}/${fmt(BD)}`, `∠DBC = tan⁻¹(${fmt(DC)}/${fmt(BD)}) ≈ ${fmtDeg(angleDBC)}°`]
             };
@@ -792,7 +815,7 @@
                 text: `A ramp is ${length} m long and makes an angle of ${angle}° with the horizontal. Find the vertical height it rises. Give answer to 3 s.f.`,
                 answer: height, tolerance: 0.05, expected: `${fmt(height)} m`,
                 diagramType: 'elevation',
-                diagram: { dist: `${fmt(length*Math.cos(angle*Math.PI/180),2)}`, height: 'h=?', angle: `${angle}°`, kind: 'elevation' },
+                diagram: { dist: '', height: 'h=?', angle: `${angle}°`, kind: 'elevation', slantLabel: `${length} m`, hideAnnotation: true },
                 hints: ['Identify: ramp length = hypotenuse, height = opposite.',`sin ${angle}° = height/length = h/${length}`,`h = ${length} × sin ${angle}° ≈ ${fmt(height)} m`],
                 steps: [`sin ${angle}° = h/${length}`, `h = ${length} × sin ${angle}°`, `h ≈ ${fmt(height)} m`]
             };
