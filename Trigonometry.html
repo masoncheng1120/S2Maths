@@ -138,9 +138,9 @@
             <div id="questionText" class="text-lg font-bold text-slate-800 mb-3"></div>
             <div id="inputGuide" class="text-sm text-slate-500 mb-5">Write your full method: identify sides, write the trig ratio, substitute, then solve.</div>
 
-            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-5">
+            <div id="diagramPanel" class="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-5">
                 <div id="diagramContainer" class="w-full flex justify-center"></div>
-                <div class="text-xs text-slate-500 mt-2 font-semibold">Diagram not drawn to scale</div>
+                <div id="diagramScaleNote" class="text-xs text-slate-500 mt-2 font-semibold">Diagram not drawn to scale</div>
             </div>
 
             <div>
@@ -150,6 +150,9 @@
 
                 <div class="mt-3 flex flex-wrap gap-2">
                     <button type="button" onclick="insertDeg()" class="px-4 py-2 rounded-xl border-2 border-violet-200 bg-violet-50 text-violet-900 font-black hover:bg-violet-100">Add °</button>
+                    <button type="button" onclick="insertFn('sin')" class="px-4 py-2 rounded-xl border-2 border-fuchsia-200 bg-fuchsia-50 text-fuchsia-900 font-black hover:bg-fuchsia-100">sin</button>
+                    <button type="button" onclick="insertFn('cos')" class="px-4 py-2 rounded-xl border-2 border-lime-200 bg-lime-50 text-lime-900 font-black hover:bg-lime-100">cos</button>
+                    <button type="button" onclick="insertFn('tan')" class="px-4 py-2 rounded-xl border-2 border-sky-200 bg-sky-50 text-sky-900 font-black hover:bg-sky-100">tan</button>
                     <button type="button" onclick="insertInv('sin')" class="px-4 py-2 rounded-xl border-2 border-rose-200 bg-rose-50 text-rose-900 font-black hover:bg-rose-100">sin⁻¹</button>
                     <button type="button" onclick="insertInv('cos')" class="px-4 py-2 rounded-xl border-2 border-amber-200 bg-amber-50 text-amber-900 font-black hover:bg-amber-100">cos⁻¹</button>
                     <button type="button" onclick="insertInv('tan')" class="px-4 py-2 rounded-xl border-2 border-cyan-200 bg-cyan-50 text-cyan-900 font-black hover:bg-cyan-100">tan⁻¹</button>
@@ -294,6 +297,7 @@
         el.focus();
     }
     function insertDeg()    { insertAt('°'); }
+    function insertFn(fn)   { insertAt(fn + ' '); }
     function insertInv(fn)  { insertAt(fn + '⁻¹('); }
     function insertSqrt()   { insertAt('√'); }
 
@@ -302,29 +306,80 @@
         return `<path d="M ${x+xd*size} ${y} L ${x+xd*size} ${y+yd*size} L ${x} ${y+yd*size}" class="diagram-right-mark"/>`;
     }
 
+    function getTriangleTransform(q) {
+        if (q._orient === undefined) q._orient = rnd(0, 3);
+        return [
+            '',
+            'translate(340 0) scale(-1 1)',
+            'translate(0 255) scale(1 -1)',
+            'translate(340 255) scale(-1 -1)'
+        ][q._orient] || '';
+    }
+
     // Generic right-angled triangle with labelled sides
-    // orientation: 'right-angle-bottom-right' (default), 'right-angle-bottom-left'
+    // Orientation: shape is flipped via transform, but text positions are calculated
+    // per-orientation so labels are always readable (never mirrored).
     function svgTrigTriangle(q) {
-        const {labelA, labelB, labelC, opp, adj, hyp, angle, orientation} = q.diagram;
-        // A=bottom-left, B=bottom-right (right angle), C=top-right
-        const A={x:50,y:200}, B={x:290,y:200}, C={x:290,y:55};
-        const rmk = drawRightMark(B.x, B.y, 15, -1, -1);
-        // angle arc at A
+        const {labelA, labelB, labelC, opp, adj, hyp, angle} = q.diagram;
+        if (q._orient === undefined) q._orient = rnd(0, 3);
+        const o = q._orient;
+        // Base positions (orient 0: A bottom-left, B bottom-right, C top-right)
+        // Flipped positions for each orient: [A, B, C, angleArc, adjLabel, oppLabel, hypLabel]
+        // orient 0: normal  orient 1: h-flip  orient 2: v-flip  orient 3: h+v flip
+        const W=360, H=260;
+        const pts = [
+            // [Ax,Ay, Bx,By, Cx,Cy]
+            [50,200, 290,200, 290,55],   // 0 normal
+            [310,200, 70,200, 70,55],    // 1 h-flip
+            [50,55,  290,55,  290,200],  // 2 v-flip
+            [310,55,  70,55,  70,200],   // 3 h+v flip
+        ][o];
+        const [Ax,Ay, Bx,By, Cx,Cy] = pts;
+
+        // Right-angle mark: always at B, pointing inward toward A and C
+        const rmkXd = Math.sign(Ax-Bx)||1, rmkYd = Math.sign(Cy-By)||1;
+        const rmk = drawRightMark(Bx, By, 15, rmkXd, rmkYd);
+
+        // Arc at A, sweeping from adj direction toward hyp direction
         const arcR = 30;
-        const arcEnd = {x: A.x + arcR * Math.cos(Math.atan2(C.y-A.y, C.x-A.x)), y: A.y + arcR * Math.sin(Math.atan2(C.y-A.y, C.x-A.x))};
-        const arc = `<path d="M ${A.x+arcR} ${A.y} A ${arcR} ${arcR} 0 0 0 ${arcEnd.x} ${arcEnd.y}" class="diagram-arc"/>`;
-        return `<svg viewBox="0 0 360 260" class="w-full max-w-xl h-auto">
-            <line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" class="diagram-adj"/>
-            <line x1="${B.x}" y1="${B.y}" x2="${C.x}" y2="${C.y}" class="diagram-opp"/>
-            <line x1="${A.x}" y1="${A.y}" x2="${C.x}" y2="${C.y}" class="diagram-hyp"/>
+        const adjAng = Math.atan2(By-Ay, Bx-Ax);
+        const hypAng = Math.atan2(Cy-Ay, Cx-Ax);
+        const arcSx = Ax + arcR*Math.cos(adjAng), arcSy = Ay + arcR*Math.sin(adjAng);
+        const arcEx = Ax + arcR*Math.cos(hypAng), arcEy = Ay + arcR*Math.sin(hypAng);
+        const cross = (Bx-Ax)*(Cy-Ay)-(By-Ay)*(Cx-Ax);
+        const sweep = cross > 0 ? 1 : 0;
+        const arc = `<path d="M ${arcSx} ${arcSy} A ${arcR} ${arcR} 0 0 ${sweep} ${arcEx} ${arcEy}" class="diagram-arc"/>`;
+
+        // Text positions: computed from flipped coordinates, always unmirrored
+        // Vertex labels: pushed out from triangle edges
+        const cx=(Ax+Bx+Cx)/3, cy=(Ay+By+Cy)/3;
+        function pushOut(px,py,dist=22){const dx=px-cx,dy=py-cy,l=Math.sqrt(dx*dx+dy*dy);return {x:px+dx/l*dist,y:py+dy/l*dist};}
+        const lA=pushOut(Ax,Ay), lB=pushOut(Bx,By), lC=pushOut(Cx,Cy);
+
+        // Angle label: along bisector from A
+        const uA={x:Math.cos(adjAng),y:Math.sin(adjAng)}, uH={x:Math.cos(hypAng),y:Math.sin(hypAng)};
+        const bis={x:uA.x+uH.x,y:uA.y+uH.y}; const bl=Math.sqrt(bis.x*bis.x+bis.y*bis.y);
+        const aLbl={x:Ax+44*bis.x/bl, y:Ay+44*bis.y/bl};
+
+        // Side labels: midpoint of each side, pushed away from opposite vertex
+        function sideLbl(x1,y1,x2,y2,ox,oy){const mx=(x1+x2)/2,my=(y1+y2)/2;const dx=ox-cx,dy=oy-cy,l=Math.sqrt(dx*dx+dy*dy);return{x:mx-dx/l*18,y:my-dy/l*18};}
+        const adjPos=sideLbl(Ax,Ay,Bx,By,Cx,Cy);
+        const oppPos=sideLbl(Bx,By,Cx,Cy,Ax,Ay);
+        const hypPos=sideLbl(Ax,Ay,Cx,Cy,Bx,By);
+
+        // Geometry is drawn transformed; text is drawn in normal SVG space with computed positions
+        return `<svg viewBox="0 0 ${W} ${H}" class="w-full max-w-xl h-auto">
+            <line x1="${Ax}" y1="${Ay}" x2="${Bx}" y2="${By}" class="diagram-adj"/>
+            <line x1="${Bx}" y1="${By}" x2="${Cx}" y2="${Cy}" class="diagram-opp"/>
+            <line x1="${Ax}" y1="${Ay}" x2="${Cx}" y2="${Cy}" class="diagram-hyp"/>
             ${rmk}${arc}
-            <text x="${A.x-14}" y="${A.y+6}" class="diagram-label">${labelA||'A'}</text>
-            <text x="${B.x+6}" y="${B.y+6}" class="diagram-label">${labelB||'B'}</text>
-            <text x="${C.x+6}" y="${C.y-4}" class="diagram-label">${labelC||'C'}</text>
-            <text x="${A.x+40}" y="${A.y-8}" class="diagram-angle">${angle||'θ'}</text>
-            <text x="165" y="220" class="diagram-side">${adj||'adj'}</text>
-            <text x="300" y="135" class="diagram-side">${opp||'opp'}</text>
-            <text x="175" y="118" class="diagram-side">${hyp||'hyp'}</text>
+            <text x="${lA.x}" y="${lA.y}" class="diagram-label" text-anchor="middle" dominant-baseline="middle">${labelA||'A'}</text>
+            <text x="${lB.x}" y="${lB.y}" class="diagram-label" text-anchor="middle" dominant-baseline="middle">${labelB||'B'}</text>
+            <text x="${lC.x}" y="${lC.y}" class="diagram-label" text-anchor="middle" dominant-baseline="middle">${labelC||'C'}</text>
+            <text x="${aLbl.x}" y="${aLbl.y}" class="diagram-angle" text-anchor="middle" dominant-baseline="middle">${angle||'θ'}</text>
+            <text x="${adjPos.x}" y="${adjPos.y}" class="diagram-side" text-anchor="middle" dominant-baseline="middle">${adj||'adj'}</text>
+            <text x="${oppPos.x}" y="${oppPos.y}" class="diagram-side" text-anchor="middle" dominant-baseline="middle">${opp||'opp'}</text>
+            <text x="${hypPos.x}" y="${hypPos.y}" class="diagram-side" text-anchor="middle" dominant-baseline="middle">${hyp||'hyp'}</text>
         </svg>`;
     }
 
@@ -391,45 +446,137 @@
         </svg>`;
     }
 
-    // Simple right triangle given 2 known sides (for ratio identification)
+    function svgBearing(q) {
+        const {east, north, bearing} = q.diagram;
+        const bearingDeg = Number(bearing);
+        const O = {x: 95, y: 205};
+        const P = {x: 275, y: 80};
+        const arcR = 38;
+        const arcEndX = O.x + arcR * Math.sin(bearingDeg * Math.PI / 180);
+        const arcEndY = O.y - arcR * Math.cos(bearingDeg * Math.PI / 180);
+
+        return `<svg viewBox="0 0 360 260" class="w-full max-w-xl h-auto">
+            <line x1="${O.x}" y1="${O.y}" x2="${O.x}" y2="40" stroke-dasharray="5 4" stroke="#94a3b8" stroke-width="1.5" fill="none"/>
+            <line x1="${O.x}" y1="${O.y}" x2="${P.x}" y2="${O.y}" class="diagram-line"/>
+            <line x1="${P.x}" y1="${O.y}" x2="${P.x}" y2="${P.y}" class="diagram-line"/>
+            <line x1="${O.x}" y1="${O.y}" x2="${P.x}" y2="${P.y}" class="diagram-line"/>
+            ${drawRightMark(P.x, O.y, 14, -1, -1)}
+            <path d="M ${O.x} ${O.y - arcR} A ${arcR} ${arcR} 0 0 1 ${arcEndX} ${arcEndY}" class="diagram-arc"/>
+            <text x="${O.x - 16}" y="${O.y + 16}" class="diagram-label">Port</text>
+            <text x="${O.x - 6}" y="34" class="diagram-label">N</text>
+            <text x="${P.x + 10}" y="${O.y + 6}" class="diagram-label">E</text>
+            <text x="${P.x + 8}" y="${P.y - 6}" class="diagram-label">Ship</text>
+            <text x="${(O.x + P.x) / 2}" y="${O.y + 22}" class="diagram-side">${east} km</text>
+            <text x="${P.x + 12}" y="${(O.y + P.y) / 2}" class="diagram-side">${north} km</text>
+            <text x="${O.x + 28}" y="${O.y - 24}" class="diagram-angle">${fmtDeg(bearingDeg)}°</text>
+        </svg>`;
+    }
+
+    // Simple right triangle given 2 known sides
+    // Same fix: geometry uses orientation coords, text positions computed per-orient.
     function svgRatioTriangle(q) {
         const {a, b, c, markAngle} = q.diagram; // markAngle = 'A' or 'C'
-        // A=bottom-left, B=bottom-right (90°), C=top-right
-        const rmk = drawRightMark(290, 200, 15, -1, -1);
+        if (q._orient === undefined) q._orient = rnd(0, 3);
+        const o = q._orient;
+        // For ratio triangle: angle-vertex is at A (markAngle='A') or C (markAngle='C').
+        // Pa=angle vertex, Pr=right-angle vertex (B), Po=third vertex
+        // Base (orient 0): A=bottom-left, B=bottom-right, C=top-right
+        const pts = [
+            [50,200, 290,200, 290,55],
+            [310,200, 70,200, 70,55],
+            [50,55,  290,55,  290,200],
+            [310,55,  70,55,  70,200],
+        ][o];
+        const [Ax,Ay, Bx,By, Cx,Cy] = pts;
+
+        // Right-angle mark at B
+        const rmkXd = Math.sign(Ax-Bx)||1, rmkYd = Math.sign(Cy-By)||1;
+        const rmk = drawRightMark(Bx, By, 15, rmkXd, rmkYd);
+
+        // Marked angle vertex: A or C
         const arcR = 28;
-        let arc = '', angleTxt = '';
-        if (markAngle === 'A') {
-            const theta = Math.atan2(200-55, 290-50);
-            const ax = 50 + arcR * Math.cos(-theta), ay = 200 + arcR * Math.sin(-theta);
-            arc = `<path d="M ${50+arcR} 200 A ${arcR} ${arcR} 0 0 0 ${ax} ${ay}" class="diagram-arc"/>`;
-            angleTxt = `<text x="88" y="192" class="diagram-angle">α</text>`;
-        } else {
-            const ax = 290 - arcR * Math.sin(0.6), ay = 55 + arcR * Math.cos(0.6);
-            arc = `<path d="M 290 ${55+arcR} A ${arcR} ${arcR} 0 0 0 ${ax} ${ay}" class="diagram-arc"/>`;
-            angleTxt = `<text x="254" y="80" class="diagram-angle">β</text>`;
-        }
+        const [Pax,Pay] = markAngle==='A' ? [Ax,Ay] : [Cx,Cy];
+        const [Pbx,Pby] = [Bx,By]; // right-angle vertex
+        const [Pcx,Pcy] = markAngle==='A' ? [Cx,Cy] : [Ax,Ay]; // third
+        const adjAng = Math.atan2(Pby-Pay, Pbx-Pax);
+        const hypAng = Math.atan2(Pcy-Pay, Pcx-Pax);
+        const arcSx = Pax+arcR*Math.cos(adjAng), arcSy = Pay+arcR*Math.sin(adjAng);
+        const arcEx = Pax+arcR*Math.cos(hypAng), arcEy = Pay+arcR*Math.sin(hypAng);
+        const cross = (Pbx-Pax)*(Pcy-Pay)-(Pby-Pay)*(Pcx-Pax);
+        const sweep = cross>0 ? 1 : 0;
+        const arc = `<path d="M ${arcSx} ${arcSy} A ${arcR} ${arcR} 0 0 ${sweep} ${arcEx} ${arcEy}" class="diagram-arc"/>`;
+
+        // Angle label along bisector from marked angle vertex
+        const uA={x:Math.cos(adjAng),y:Math.sin(adjAng)}, uH={x:Math.cos(hypAng),y:Math.sin(hypAng)};
+        const bis={x:uA.x+uH.x,y:uA.y+uH.y}; const bl=Math.sqrt(bis.x*bis.x+bis.y*bis.y);
+        const aLbl={x:Pax+42*bis.x/bl, y:Pay+42*bis.y/bl};
+        const angleTxt=`<text x="${aLbl.x}" y="${aLbl.y}" class="diagram-angle" text-anchor="middle" dominant-baseline="middle">${markAngle==='A'?'α':'β'}</text>`;
+
+        // Vertex and side label positions
+        const cx=(Ax+Bx+Cx)/3, cy=(Ay+By+Cy)/3;
+        function pushOut(px,py,dist=22){const dx=px-cx,dy=py-cy,l=Math.sqrt(dx*dx+dy*dy);return{x:px+dx/l*dist,y:py+dy/l*dist};}
+        function sideLbl(x1,y1,x2,y2,ox,oy){const mx=(x1+x2)/2,my=(y1+y2)/2;const dx=ox-cx,dy=oy-cy,l=Math.sqrt(dx*dx+dy*dy);return{x:mx-dx/l*18,y:my-dy/l*18};}
+        const lA=pushOut(Ax,Ay), lB=pushOut(Bx,By), lC=pushOut(Cx,Cy);
+        // adj = Pa→Pr, opp = Pr→Po, hyp = Pa→Po
+        // When markAngle='A': adj side label=a (AB), opp=b (BC), hyp=c (AC)
+        // When markAngle='C': Pa=C, adj=CB=b, opp=BA=a, hyp=CA=c
+        const [sAdj,sOpp,sHyp] = markAngle==='A' ? [a,b,c] : [b,a,c];
+        const adjPos = sideLbl(Pax,Pay,Pbx,Pby,Pcx,Pcy);
+        const oppPos = sideLbl(Pbx,Pby,Pcx,Pcy,Pax,Pay);
+        const hypPos = sideLbl(Pax,Pay,Pcx,Pcy,Pbx,Pby);
+        const [lbA,lbB,lbC] = markAngle==='A' ? [lA,lB,lC] : [lA,lB,lC];
+
         return `<svg viewBox="0 0 360 260" class="w-full max-w-xl h-auto">
-            <line x1="50" y1="200" x2="290" y2="200" class="diagram-adj"/>
-            <line x1="290" y1="200" x2="290" y2="55" class="diagram-opp"/>
-            <line x1="50" y1="200" x2="290" y2="55" class="diagram-hyp"/>
+            <line x1="${Ax}" y1="${Ay}" x2="${Bx}" y2="${By}" class="diagram-adj"/>
+            <line x1="${Bx}" y1="${By}" x2="${Cx}" y2="${Cy}" class="diagram-opp"/>
+            <line x1="${Ax}" y1="${Ay}" x2="${Cx}" y2="${Cy}" class="diagram-hyp"/>
             ${rmk}${arc}${angleTxt}
-            <text x="36" y="216" class="diagram-label">A</text>
-            <text x="295" y="216" class="diagram-label">B</text>
-            <text x="295" y="50" class="diagram-label">C</text>
-            <text x="162" y="218" class="diagram-side">${a}</text>
-            <text x="298" y="132" class="diagram-side">${b}</text>
-            <text x="178" y="118" class="diagram-side">${c}</text>
+            <text x="${lA.x}" y="${lA.y}" class="diagram-label" text-anchor="middle" dominant-baseline="middle">A</text>
+            <text x="${lB.x}" y="${lB.y}" class="diagram-label" text-anchor="middle" dominant-baseline="middle">B</text>
+            <text x="${lC.x}" y="${lC.y}" class="diagram-label" text-anchor="middle" dominant-baseline="middle">C</text>
+            <text x="${adjPos.x}" y="${adjPos.y}" class="diagram-side" text-anchor="middle" dominant-baseline="middle">${sAdj}</text>
+            <text x="${oppPos.x}" y="${oppPos.y}" class="diagram-side" text-anchor="middle" dominant-baseline="middle">${sOpp}</text>
+            <text x="${hypPos.x}" y="${hypPos.y}" class="diagram-side" text-anchor="middle" dominant-baseline="middle">${sHyp}</text>
         </svg>`;
     }
 
     function renderDiagram(q) {
         const el = document.getElementById('diagramContainer');
-        if (!q || !q.diagramType) { el.innerHTML = ''; return; }
-        if (q.diagramType === 'ratio')      el.innerHTML = svgRatioTriangle(q);
-        else if (q.diagramType === 'trig')  el.innerHTML = svgTrigTriangle(q);
-        else if (q.diagramType === 'composite') el.innerHTML = svgComposite(q);
-        else if (q.diagramType === 'elevation') el.innerHTML = svgElevation(q);
-        else el.innerHTML = '';
+        const panel = document.getElementById('diagramPanel');
+        const scaleNote = document.getElementById('diagramScaleNote');
+        if (!q || !q.diagramType) {
+            el.innerHTML = '';
+            if (panel) panel.classList.add('hidden');
+            return;
+        }
+        if (panel) panel.classList.remove('hidden');
+        if (scaleNote) scaleNote.classList.remove('hidden');
+        try {
+            let markup = '';
+            if (q.diagramType === 'ratio') markup = svgRatioTriangle(q);
+            else if (q.diagramType === 'trig') markup = svgTrigTriangle(q);
+            else if (q.diagramType === 'composite') markup = svgComposite(q);
+            else if (q.diagramType === 'elevation') markup = svgElevation(q);
+            else if (q.diagramType === 'bearing') markup = svgBearing(q);
+            if (!markup || /NaN|undefined|null/.test(markup)) throw new Error('Invalid diagram markup');
+            el.innerHTML = markup;
+        } catch (e) {
+            // Fallback prevents blank diagram when a random variant creates invalid geometry.
+            el.innerHTML = `<svg viewBox="0 0 360 260" class="w-full max-w-xl h-auto">
+                <line x1="60" y1="200" x2="300" y2="200" class="diagram-adj"/>
+                <line x1="300" y1="200" x2="300" y2="70" class="diagram-opp"/>
+                <line x1="60" y1="200" x2="300" y2="70" class="diagram-hyp"/>
+                ${drawRightMark(300, 200, 14, -1, -1)}
+                <path d="M 95 200 A 35 35 0 0 1 123 182" class="diagram-arc"/>
+                <text x="50" y="214" class="diagram-label">A</text>
+                <text x="305" y="214" class="diagram-label">B</text>
+                <text x="305" y="64" class="diagram-label">C</text>
+                <text x="180" y="214" class="diagram-side">adj</text>
+                <text x="312" y="136" class="diagram-side">opp</text>
+                <text x="174" y="128" class="diagram-side">hyp</text>
+                <text x="108" y="190" class="diagram-angle">θ</text>
+            </svg>`;
+        }
     }
 
     // ─── question generators ────────────────────────────────────────────────
@@ -478,7 +625,8 @@
                 answer: val,
                 tolerance: 0.00015,
                 expected: fmt(val, 4),
-                diagramType: null,
+                diagramType: 'trig',
+                diagram: {labelA:'A',labelB:'B',labelC:'C', opp:'opp', adj:'adj', hyp:'hyp', angle:`${angle}°`},
                 hints: [`Make sure your calculator is in degree mode.`,`Key in: sin(${angle}) and round to 4 d.p.`,`sin ${angle}° ≈ ${fmt(val,4)}`],
                 steps: [`sin ${angle}° ≈ ${fmt(val,4)}`]
             };
@@ -494,7 +642,8 @@
                 answer: theta,
                 tolerance: 0.15,
                 expected: `${fmtDeg(theta)}°`,
-                diagramType: null,
+                diagramType: 'trig',
+                diagram: {labelA:'A',labelB:'B',labelC:'C', opp:`BC=${opp}`, adj:'AB', hyp:`AC=${hyp}`, angle:'θ'},
                 hints: ['Use inverse sine: θ = sin⁻¹(opp/hyp).',`sin⁻¹(${opp}/${hyp}) = ?`,`θ = ${fmtDeg(theta)}°`],
                 steps: [`sin θ = ${opp}/${hyp}`, `θ = sin⁻¹(${opp}/${hyp})`, `θ ≈ ${fmtDeg(theta)}°`]
             };
@@ -577,7 +726,8 @@
             return {
                 text: `Use a calculator to find cos ${angle}°. Give your answer correct to 4 decimal places.`,
                 answer: val, tolerance: 0.00015, expected: fmt(val,4),
-                diagramType: null,
+                diagramType: 'trig',
+                diagram: {labelA:'A',labelB:'B',labelC:'C', opp:'opp', adj:'adj', hyp:'hyp', angle:`${angle}°`},
                 hints: ['Make sure your calculator is in degree mode.','Key in: cos(angle).',`cos ${angle}° ≈ ${fmt(val,4)}`],
                 steps: [`cos ${angle}° ≈ ${fmt(val,4)}`]
             };
@@ -589,7 +739,8 @@
             return {
                 text: `Find the acute angle θ if cos θ = ${adj}/${hyp}. Give answer to nearest 0.1°.`,
                 answer: theta, tolerance: 0.15, expected: `${fmtDeg(theta)}°`,
-                diagramType: null,
+                diagramType: 'trig',
+                diagram: {labelA:'A',labelB:'B',labelC:'C', opp:'BC', adj:`AB=${adj}`, hyp:`AC=${hyp}`, angle:'θ'},
                 hints: ['Use inverse cosine.',`cos⁻¹(${adj}/${hyp}) = ?`,`θ = ${fmtDeg(theta)}°`],
                 steps: [`cos θ = ${adj}/${hyp}`, `θ = cos⁻¹(${adj}/${hyp}) ≈ ${fmtDeg(theta)}°`]
             };
@@ -660,7 +811,8 @@
             return {
                 text: `Use a calculator to find tan ${angle}°. Give your answer correct to 4 decimal places.`,
                 answer: val, tolerance: 0.0015, expected: fmt(val,4),
-                diagramType: null,
+                diagramType: 'trig',
+                diagram: {labelA:'A',labelB:'B',labelC:'C', opp:'opp', adj:'adj', hyp:'hyp', angle:`${angle}°`},
                 hints: ['Make sure your calculator is in degree mode.',`Key in: tan(${angle}).`,`tan ${angle}° ≈ ${fmt(val,4)}`],
                 steps: [`tan ${angle}° ≈ ${fmt(val,4)}`]
             };
@@ -672,7 +824,8 @@
             return {
                 text: `Find the acute angle θ if tan θ = ${opp}/${adj}. Give answer to nearest 0.1°.`,
                 answer: theta, tolerance: 0.15, expected: `${fmtDeg(theta)}°`,
-                diagramType: null,
+                diagramType: 'trig',
+                diagram: {labelA:'A',labelB:'B',labelC:'C', opp:`BC=${opp}`, adj:`AB=${adj}`, hyp:'AC', angle:'θ'},
                 hints: ['Use inverse tangent.',`tan⁻¹(${opp}/${adj}) = ?`,`θ ≈ ${fmtDeg(theta)}°`],
                 steps: [`tan θ = ${opp}/${adj}`, `θ = tan⁻¹(${opp}/${adj}) ≈ ${fmtDeg(theta)}°`]
             };
@@ -801,7 +954,8 @@
             return {
                 text: `A ship sails ${east} km east and ${north} km north from port. What is the bearing (angle from north, clockwise) of the ship from the port? Give answer to nearest 0.1°.`,
                 answer: bearing, tolerance: 0.2, expected: `${fmtDeg(bearing)}°`,
-                diagramType: null,
+                diagramType: 'bearing',
+                diagram: { east, north, bearing },
                 hints: ['Draw a right triangle with east and north components.',`tan(bearing) = east/north = ${east}/${north}`,`bearing = tan⁻¹(${east}/${north}) ≈ ${fmtDeg(bearing)}°`],
                 steps: [`tan(bearing) = east/north = ${east}/${north}`, `bearing = tan⁻¹(${east}/${north}) ≈ ${fmtDeg(bearing)}°`]
             };
@@ -866,14 +1020,59 @@
 
     // ─── answer checking ─────────────────────────────────────────────────────
     function parseAnswer(raw) {
-        const cleaned = raw.replace(/°/g,'').replace(/[,\s]/g,'').toLowerCase();
-        // Handle fractions
-        if (/^\d+\/\d+$/.test(cleaned)) {
-            const [n,d] = cleaned.split('/').map(Number);
-            return n/d;
+        const lines = String(raw || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+        if (lines.length === 0) return null;
+
+        let candidate = lines[lines.length - 1];
+        if (candidate.includes('=')) {
+            const rhs = candidate.split('=').pop();
+            if (rhs) candidate = rhs.trim();
         }
-        const n = parseFloat(cleaned);
-        return isNaN(n) ? null : n;
+
+        let cleaned = candidate.toLowerCase()
+            .replace(/\b(theta|degree|degrees|cm|m)\b/g, '')
+            .replace(/[°,]/g, '')
+            .replace(/\s+/g, '');
+
+        if (/^-?\d+(\.\d+)?\/-?\d+(\.\d+)?$/.test(cleaned)) {
+            const [n, d] = cleaned.split('/').map(Number);
+            return d === 0 ? null : n / d;
+        }
+
+        // Allow degree-mode trig expression input, e.g. sin^-1(5/13), tan(30)
+        const expr = cleaned
+            .replace(/sin⁻¹|sin\^-1|sin-1|arcsin/g, 'asin')
+            .replace(/cos⁻¹|cos\^-1|cos-1|arccos/g, 'acos')
+            .replace(/tan⁻¹|tan\^-1|tan-1|arctan/g, 'atan')
+            .replace(/asin/g, 'ASIN')
+            .replace(/acos/g, 'ACOS')
+            .replace(/atan/g, 'ATAN')
+            .replace(/sin/g, 'SIN')
+            .replace(/cos/g, 'COS')
+            .replace(/tan/g, 'TAN');
+
+        if (/^[0-9+\-*/().ASINCOT]+$/.test(expr)) {
+            try {
+                const value = Function(`"use strict";
+                    const deg = Math.PI / 180;
+                    const SIN = (x) => Math.sin(x * deg);
+                    const COS = (x) => Math.cos(x * deg);
+                    const TAN = (x) => Math.tan(x * deg);
+                    const ASIN = (x) => Math.asin(x) / deg;
+                    const ACOS = (x) => Math.acos(x) / deg;
+                    const ATAN = (x) => Math.atan(x) / deg;
+                    return (${expr});
+                `)();
+                if (Number.isFinite(value)) return value;
+            } catch (e) {
+                // Fall through to plain-number extraction.
+            }
+        }
+
+        const match = cleaned.match(/-?\d+(?:\.\d+)?(?:e[+-]?\d+)?/);
+        if (!match) return null;
+        const value = Number(match[0]);
+        return Number.isFinite(value) ? value : null;
     }
 
     function checkTextAnswer(raw, q) {
@@ -911,6 +1110,8 @@
             const prev = parseInt(localStorage.getItem(keyFor(state.currentWorksheet)) || '0', 10);
             localStorage.setItem(keyFor(state.currentWorksheet), String(prev + 1));
             if (window.__mq_increment) window.__mq_increment('trigonometry', 1);
+            // Keep menu progress bars and topic total in sync immediately after scoring.
+            updateWorksheetTracker();
         }
 
         renderFeedback(correct, q, raw);
