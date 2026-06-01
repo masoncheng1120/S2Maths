@@ -301,6 +301,7 @@
         const cx = 180;
         const cy = 135;
         const rr = 88;
+        const useDiameter = Boolean(q.diagram.showDiam && Number.isFinite(q.diagram.d));
         const isFullCircle = angle >= 358;
 
         if (isFullCircle) {
@@ -326,6 +327,12 @@
         const rLabelPt = polarToXY(cx, cy, rr * 0.55, 0);
         const angleLabelPt = polarToXY(cx, cy, 32, angle / 2);
         const arcLabelPt = polarToXY(cx, cy, rr + 16, angle / 2);
+        const measureGuide = useDiameter
+            ? `<line x1="${cx - rr}" y1="${cy}" x2="${cx + rr}" y2="${cy}" class="diagram-aux" />`
+            : '';
+        const measureLabel = useDiameter
+            ? `<text x="${cx - 20}" y="${cy - 10}" class="diagram-side">d = ${q.diagram.d}</text>`
+            : `<text x="${rLabelPt.x + 4}" y="${rLabelPt.y - 6}" class="diagram-side">r = ${r}</text>`;
 
         const content = `
             <circle cx="${cx}" cy="${cy}" r="${rr}" class="diagram-line" />
@@ -333,9 +340,10 @@
             <line x1="${cx}" y1="${cy}" x2="${pEnd.x}" y2="${pEnd.y}" class="diagram-line" />
             <path d="M ${pTop.x} ${pTop.y} A ${rr} ${rr} 0 ${angle > 180 ? 1 : 0} 1 ${pEnd.x} ${pEnd.y}" class="diagram-accent" />
             <path d="M ${cx} ${cy - 26} A 26 26 0 ${angle > 180 ? 1 : 0} 1 ${cx + 26 * Math.sin((angle * Math.PI) / 180)} ${cy - 26 * Math.cos((angle * Math.PI) / 180)}" class="diagram-aux" />
+            ${measureGuide}
             <circle cx="${cx}" cy="${cy}" r="3.8" class="diagram-dot" />
             <text x="${cx + 8}" y="${cy - 4}" class="diagram-label">O</text>
-            <text x="${rLabelPt.x + 4}" y="${rLabelPt.y - 6}" class="diagram-side">r = ${r}</text>
+            ${measureLabel}
             <text x="${angleLabelPt.x - 10}" y="${angleLabelPt.y + 5}" class="diagram-side">${angle}°</text>
         `;
         return svgFrame(content);
@@ -562,18 +570,26 @@
             const rOptions = [3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20];
             const angleOptions = [30, 40, 45, 50, 60, 72, 75, 80, 90, 100, 105, 120, 130, 135, 144, 150, 160, 180, 210, 225, 240, 270, 288, 300, 330];
             const r = pick(rOptions);
+            const d = r * 2;
             const angle = pick(angleOptions);
             const ans = (angle / 360) * 2 * Math.PI * r;
+            const useDiameter = pick([true, false]);
+            const text = useDiameter
+                ? `In a circle of diameter ${d} cm, find the length of the arc subtending ${angle}°. Give your answer in terms of π.`
+                : `In a circle of radius ${r} cm, find the length of the arc subtending ${angle}°. Give your answer in terms of π.`;
+            const steps = useDiameter
+                ? [`r = d ÷ 2 = ${d} ÷ 2 = ${r} cm`, `arc = (θ/360) × 2πr`, `= (${angle}/360) × 2π × ${r}`, `= ${formatNum(ans / Math.PI)}π cm`]
+                : [`arc = (θ/360) × 2πr`, `= (${angle}/360) × 2π × ${r}`, `= ${formatNum(ans / Math.PI)}π cm`];
             return {
                 worksheet: 'arc',
                 type: 'arc',
-                text: `In a circle of radius ${r} cm, find the length of the arc subtending ${angle}°. Give your answer in terms of π.`,
+                text,
                 answer: ans,
                 expected: `${formatNum(ans / Math.PI)}π cm`,
                 formula: 'arc = (theta/360) × 2πr',
                 requirePi: true,
-                diagram: { r, angle },
-                steps: [`arc = (θ/360) × 2πr`, `= (${angle}/360) × 2π × ${r}`, `= ${formatNum(ans / Math.PI)}π cm`]
+                diagram: { r, d, angle, showDiam: useDiameter },
+                steps
             };
         }
 
